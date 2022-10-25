@@ -3,7 +3,21 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
     </PropertyGroup>
+    
+    <!-- / 하고 \ 차이 -->
+    <ItemGroup>
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.4.20" />
+        <PackageReference Include="AWSSDK.SQS" Version="3.7.2.117" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Context" />
+    </ItemGroup>
 
 </Project>
