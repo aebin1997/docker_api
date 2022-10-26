@@ -15,9 +15,5 @@
         <PackageReference Include="AWSSDK.SQS" Version="3.7.2.117" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="Context" />
-    </ItemGroup>
 
 </Project>

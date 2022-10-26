@@ -7,6 +7,7 @@ namespace Domain.Entities
     
     public class UserModel
     {
+        
         [Column("idx")]
         public int Idx { get; set; }
 
@@ -26,9 +27,7 @@ namespace Domain.Entities
         [Required]
         [Column("updated")]
         public ulong Updated { get; set; }
-        
-        [Required]
-        [Column("deleted")]
-        public bool Deleted { get; set; } 
+
+        [Required] [Column("deleted")] public bool Deleted { get; set; } = false;
     }
 }

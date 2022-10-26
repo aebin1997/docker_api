@@ -34,10 +34,10 @@ namespace Application.Controllers
                 model.LifeBestScore
             );
 
-            if (result == false)
-            {
-                Console.WriteLine("post fail");
-            }
+            // if (result.isSuccess == false)
+            // {
+            //     Console.WriteLine("post fail");
+            // }
 
             return StatusCode(StatusCodes.Status201Created);
         }
@@ -76,10 +76,10 @@ namespace Application.Controllers
         {
             var result = _user.DeleteUser(idx);
             
-            if (result == false)
-            {
-                Console.WriteLine("delete fail");
-            }
+            // if (result.isSu == false)
+            // {
+            //     Console.WriteLine("delete fail");
+            // }
             
             return StatusCode(StatusCodes.Status200OK);
         }
@@ -101,7 +101,5 @@ namespace Application.Controllers
 
             return StatusCode(StatusCodes.Status200OK, result.details);;
         }
-        
-        // UpdateUser
     }
 }
