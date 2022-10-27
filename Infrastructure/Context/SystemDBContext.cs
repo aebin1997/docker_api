@@ -9,7 +9,7 @@ namespace Infrastructure.Context
         /// <summary>
         /// 유저 테이블
         /// </summary>
-        public DbSet<UserModel> User { get; set; } // Users 라고 해도되는지
+        public DbSet<UserModel> Users { get; set; } 
 
         public SystemDBContext(DbContextOptions<SystemDBContext> options) : base(options)
         {
@@ -17,19 +17,18 @@ namespace Infrastructure.Context
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // base.OnModelCreating(modelBuilder);
-
-            // #region DateTime Converter
-            //
-            // #endregion
+            base.OnModelCreating(modelBuilder); // 뭔지 모르겠음
 
             modelBuilder.Entity<UserModel>(builder =>
             {
                 // primary key
-                builder.HasKey(p => p.Idx);
+                builder
+                    .HasKey(p => p.Idx);
                 
                 // let DB create values
-                builder.Property(p => p.Idx).ValueGeneratedOnAdd();
+                builder
+                    .Property(p => p.Idx)
+                    .ValueGeneratedOnAdd();
             });
         }
     }

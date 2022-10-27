@@ -11,7 +11,8 @@ namespace Infrastructure.Models.Response
         public int? LifeBestScore { get; set; }
     
         public DateTime Created { get; set; }
-    
+        
+        public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
     }
 }

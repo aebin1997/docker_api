@@ -2,9 +2,9 @@ namespace Infrastructure.Models.Response
 {
     public class UserListResponse
     {
-        private int TotalCount { get; set; }
+        public int TotalCount { get; set; }
 
-        private List<UserList> List { get; set; }
+        public List<UserList> List { get; set; }
 
         public UserListResponse(int totalCount, List<UserList> list)
         {
@@ -24,6 +24,8 @@ namespace Infrastructure.Models.Response
         public int? LifeBestScore { get; set; }
         
         public DateTime Created { get; set; }
+        
+        public DateTime Updated { get; set; }
         
         public bool Deleted { get; set; }
     }

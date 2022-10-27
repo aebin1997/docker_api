@@ -22,11 +22,11 @@ namespace Domain.Entities
         
         [Required]
         [Column("created")]
-        public ulong Created { get; set; }
+        public DateTime Created { get; set; }
         
         [Required]
         [Column("updated")]
-        public ulong Updated { get; set; }
+        public DateTime Updated { get; set; }
 
         [Required] [Column("deleted")] public bool Deleted { get; set; } = false;
     }

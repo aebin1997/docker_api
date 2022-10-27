@@ -28,28 +28,30 @@ namespace Application.Controllers
         [HttpPost]
         public async Task<ActionResult> PostUser([FromBody] AddUserRequest model)
         {
-            var result = _user.AddUser(
+            var result = await _user.AddUser(
                 model.UserId,
                 model.UserPw,
                 model.LifeBestScore
             );
 
-            // if (result.isSuccess == false)
-            // {
-            //     Console.WriteLine("post fail");
-            // }
+            if (result.isSuccess == false)
+            {
+                Console.WriteLine("post fail");
+                return StatusCode(StatusCodes.Status404NotFound);
+            }
 
             return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetUsers([FromQuery] UserListResponse model)
+        public async Task<ActionResult> GetUsers()
         {
-            var result = _user.GetUsers();
+            var result = await _user.GetUsers();
 
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get todo list fail");
+                Console.WriteLine("get user list fail");
+                return StatusCode(StatusCodes.Status404NotFound, null);
             }
 
             UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
@@ -58,37 +60,39 @@ namespace Application.Controllers
         }
 
         [HttpGet("{idx}")]
-        public async Task<ActionResult<UserModel>> GetUserDetails([FromRoute] int idx)
+        public async Task<ActionResult> GetUserDetails([FromRoute] int idx)
         {
-            var result = _user.GetUserDetails(idx);
+            var result = await _user.GetUserDetails(idx);
             
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get todo details fail");
+                Console.WriteLine("get user details fail");
+                return StatusCode(StatusCodes.Status404NotFound, null);
             }
 
             return StatusCode(StatusCodes.Status200OK, result.details);;           
         }
 
 
-        [HttpPut("delete/{idx}")]
+        [HttpDelete("{idx}")]
         public async Task<ActionResult> DeleteUser([FromRoute] int idx)
         {
-            var result = _user.DeleteUser(idx);
+            var result = await _user.DeleteUser(idx);
             
-            // if (result.isSu == false)
-            // {
-            //     Console.WriteLine("delete fail");
-            // }
+            if (result.isSuccess == false)
+            {
+                Console.WriteLine("user delete fail");
+                return StatusCode(StatusCodes.Status404NotFound);
+            }
             
             return StatusCode(StatusCodes.Status200OK);
         }
 
         [HttpPut("{idx}")]
-        public async Task<ActionResult<UserModel>> UpdateUser([FromBody] UpdateUserRequest model)
+        public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserParameterModel model)
         {
-            var result = _user.UpdateUser(
-                    model.Idx,
+            var result = await _user.UpdateUser(
+                    idx,
                     model.UserId,
                     model.UserPw,
                     model.LifeBestScore
@@ -96,10 +100,19 @@ namespace Application.Controllers
             
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get todo details fail");
+                Console.WriteLine("update user details fail");
+                return StatusCode(StatusCodes.Status404NotFound);
             }
 
-            return StatusCode(StatusCodes.Status200OK, result.details);;
+            var result2 = await _user.GetUserDetails(idx);
+            
+            if (result2.isSuccess == false)
+            {
+                Console.WriteLine("update user details fail");
+                return StatusCode(StatusCodes.Status404NotFound);
+            }
+            
+            return StatusCode(StatusCodes.Status200OK, result2.details);
         }
     }
 }
