@@ -8,8 +8,8 @@ namespace Infrastructure.Models.Response
 
         public UserListResponse(int totalCount, List<UserList> list)
         {
-            this.TotalCount = totalCount;
-            this.List = list;
+            TotalCount = totalCount;
+            List = list;
         }
     }
 

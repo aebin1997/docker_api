@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Infrastructure.Models.Response;
 using Infrastructure.Context;
+using Infrastructure.Models;
 using Infrastructure.Models.Request;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ namespace Infrastructure.Services
 {
     public interface IUserService
     {
-        Task<(bool isSuccess, int errorCode)> AddUser(string userId, string userPw, int? lifeBestScore);
+        Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request);
         Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
         Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers();
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
@@ -45,19 +46,21 @@ namespace Infrastructure.Services
             return localDt;
         }
 
-        public async Task<(bool isSuccess, int errorCode)> AddUser(string userId, string userPw, int? lifeBestScore)
+        public async Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request)
         {
             try
             {
+                // TODO: 유효성 검사 로직 실행
+                
                 var nowUnixTime = DateTime.UtcNow;
                 var user = new UserModel
                 {
+                    UserId = request.UserId,
+                    UserPw = request.UserPw,
+                    LifeBestScore = request.LifeBestScore,
                     Created = nowUnixTime,
-                    Deleted = false,
-                    LifeBestScore = lifeBestScore,
                     Updated = nowUnixTime,
-                    UserId = userId,
-                    UserPw = userPw
+                    Deleted = false,
                 };
 
                 await _db.Users.AddAsync(user);
@@ -68,6 +71,8 @@ namespace Infrastructure.Services
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                
+                // 에러코드 재정의 해주세요.
                 return (false, 3031);
             }
         }
@@ -104,10 +109,14 @@ namespace Infrastructure.Services
         {
             try
             {
+                // TODO: 필터에 대한 유효성 검사 로직 개발
+                
                 var query = _db.Users
-                    .AsNoTracking() 
+                    .AsNoTracking()
                     .Where(p => p.Deleted == false);
-
+                
+                // TODO: 필터 로직 개발
+                
                 var userList = await query
                     .Select(p => new
                     {
@@ -115,6 +124,7 @@ namespace Infrastructure.Services
                     })
                     .ToListAsync();
 
+                // TODO: Service Response Model 하나로 반환할 데이터를 다 입력하신 다음 Model 객체 하나만 반환하도록 수정해주세요.
                 var totalCount = userList.Count;
                 
                 var list = (from user in userList

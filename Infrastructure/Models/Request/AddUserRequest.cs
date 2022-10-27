@@ -1,4 +1,4 @@
-namespace Infrastructure.Models.Request;
+namespace Infrastructure.Models;
 
 public class AddUserRequest
 {
@@ -6,6 +6,5 @@ public class AddUserRequest
 
     public string UserPw { get; set; } = "";
 
-    // nullable ? 달았더니 controller 에서 에러남
     public int? LifeBestScore { get; set; }
 }
