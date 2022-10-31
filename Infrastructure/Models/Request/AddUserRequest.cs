@@ -1,4 +1,4 @@
-namespace Infrastructure.Models;
+namespace Infrastructure.Models.Request;
 
 public class AddUserRequest
 {

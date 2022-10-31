@@ -2,23 +2,22 @@ using Domain.Entities;
 using Infrastructure.Models.Response;
 using Infrastructure.Context;
 using Infrastructure.Models;
+using System.Text.RegularExpressions;
 using Infrastructure.Models.Request;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using Serilog.Context;
 
 namespace Infrastructure.Services
 {
     public interface IUserService
     {
-        Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request);
-        Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
         Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers();
+        // Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersAbove();
+        // Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow();
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
-        Task<(bool isSuccess, int errorCode)> UpdateUser(int idx, string userId, string userPw, int? lifeBestScore);
+        Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request);
+        Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);
+        Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
     }
     
     public class UserService : IUserService
@@ -44,65 +43,6 @@ namespace Infrastructure.Services
 
             localDt = DateTime.SpecifyKind(utcDt, DateTimeKind.Local);
             return localDt;
-        }
-
-        public async Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request)
-        {
-            try
-            {
-                // TODO: 유효성 검사 로직 실행
-                
-                var nowUnixTime = DateTime.UtcNow;
-                var user = new UserModel
-                {
-                    UserId = request.UserId,
-                    UserPw = request.UserPw,
-                    LifeBestScore = request.LifeBestScore,
-                    Created = nowUnixTime,
-                    Updated = nowUnixTime,
-                    Deleted = false,
-                };
-
-                await _db.Users.AddAsync(user);
-                await _db.SaveChangesAsync();
-                
-                return (true, 0);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                
-                // 에러코드 재정의 해주세요.
-                return (false, 3031);
-            }
-        }
-
-        public async Task<(bool isSuccess, int errorCode)> DeleteUser(int idx)
-        {
-            try
-            {
-                var data = await _db.Users
-                    .Where(p => p.Deleted == false
-                                && p.Idx == idx
-                    )
-                    .FirstOrDefaultAsync();
-
-                if (data == null)
-                {
-                    return (false, 3043);
-                }
-
-                data.Deleted = true;
-
-                await _db.SaveChangesAsync();
-                
-                return (true, 0);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return (false, 3032);
-            }
         }
 
         public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers()
@@ -146,7 +86,7 @@ namespace Infrastructure.Services
                 return (false, 3033, null, 0);
             }
         }
-
+        
         public async Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx)
         {
             try
@@ -190,14 +130,68 @@ namespace Infrastructure.Services
                 return (false, 3034, null);
             }
         }
+        
+        public async Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request)
+        {
+            try
+            {
+                // TODO: 유효성 검사 로직 실행
+                var idValid = false;
+                var pwValid = false;
+                
+                #region UserId 유효성 검사
+                Regex regex = new Regex(@"^[\w_-]+$");
 
-        public async Task<(bool isSuccess, int errorCode)> UpdateUser(int idx, string userId, string userPw, int? lifeBestScore)
+                if (regex.IsMatch(request.UserId))
+                {
+                    idValid = true;
+                }
+                #endregion
+                
+                #region UserPw 유효성 검사
+                if (request.UserPw.Length == 4)
+                {
+                    pwValid = true;
+                }
+                #endregion
+
+                if (idValid == true && pwValid == true)
+                {
+                    var nowUnixTime = DateTime.UtcNow;
+                    var user = new UserModel
+                    {
+                        UserId = request.UserId,
+                        UserPw = request.UserPw,
+                        LifeBestScore = request.LifeBestScore,
+                        Created = nowUnixTime,
+                        Updated = nowUnixTime,
+                        Deleted = false,
+                    };
+
+                    await _db.Users.AddAsync(user);
+                    await _db.SaveChangesAsync();
+                    
+                    return (true, 0); 
+                }
+                
+                return (false, 3031);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                
+                // 에러코드 재정의 해주세요.
+                return (false, 3031);
+            }
+        }
+
+        public async Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request)
         {
             try
             {
                 var data = await _db.Users
                     .Where(p => p.Deleted == false
-                                && p.Idx == idx
+                                && p.Idx == request.Idx
                                 )
                     .FirstOrDefaultAsync();
 
@@ -208,37 +202,37 @@ namespace Infrastructure.Services
 
                 var updateUserRequest = new List<UpdateUserRequest>();
 
-                if (string.IsNullOrEmpty(userId) == false)
+                if (string.IsNullOrEmpty(request.UserId) == false)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "user_id",
                         DataBefore = data.UserId,
-                        DataAfter = userId
+                        DataAfter = request.UserId
                     });
-                    data.UserId = userId;
+                    data.UserId = request.UserId;
                 }
                 
-                if (string.IsNullOrEmpty(userPw) == false)
+                if (string.IsNullOrEmpty(request.UserPw) == false)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "user_pw",
                         DataBefore = data.UserPw,
-                        DataAfter = userPw
+                        DataAfter = request.UserPw
                     });
-                    data.UserPw = userPw;
+                    data.UserPw = request.UserPw;
                 }
                 
-                if (lifeBestScore > 0)
+                if (request.LifeBestScore > 0)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "life_best_score",
                         DataBefore = data.LifeBestScore.ToString(),
-                        DataAfter = lifeBestScore.ToString() 
+                        DataAfter = request.LifeBestScore.ToString() 
                     });
-                    data.LifeBestScore = (int)lifeBestScore;
+                    data.LifeBestScore = (int)request.LifeBestScore;
                 }
 
                 if (updateUserRequest.Count > 0)
@@ -252,6 +246,34 @@ namespace Infrastructure.Services
             {
                 Console.WriteLine(e);
                 return (false, 3035);
+            }
+        }
+        
+        public async Task<(bool isSuccess, int errorCode)> DeleteUser(int idx)
+        {
+            try
+            {
+                var data = await _db.Users
+                    .Where(p => p.Deleted == false
+                                && p.Idx == idx
+                    )
+                    .FirstOrDefaultAsync();
+
+                if (data == null)
+                {
+                    return (false, 3043);
+                }
+
+                data.Deleted = true;
+
+                await _db.SaveChangesAsync();
+                
+                return (true, 0);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return (false, 3032);
             }
         }
     }
