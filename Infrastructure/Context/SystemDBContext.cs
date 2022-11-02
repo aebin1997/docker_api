@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Domain.Entities;
 
 namespace Infrastructure.Context
@@ -17,7 +16,8 @@ namespace Infrastructure.Context
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // 뭔지 모르겠음
+            // 기본적으로 제공해주는 OnModelCreating 메서드는 아무런 동작이 없는 메서드이기 때문에 호출해도되고 안해도된다.
+            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserModel>(builder =>
             {

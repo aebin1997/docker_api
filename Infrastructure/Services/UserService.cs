@@ -17,7 +17,7 @@ namespace Infrastructure.Services
         Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow(int score);
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
         Task<DefaultReturn> AddUser(AddUserRequest request);
-        Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);   
+        Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);
         Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
     }
     
@@ -50,10 +50,14 @@ namespace Infrastructure.Services
         {
             try
             {
+                // TODO: 필터에 대한 유효성 검사 로직 개발
+                
                 var query = _db.Users
-                    .AsNoTracking() 
+                    .AsNoTracking()
                     .Where(p => p.Deleted == false);
-
+                
+                // TODO: 필터 로직 개발
+                
                 var userList = await query
                     .Select(p => new
                     {
@@ -112,6 +116,7 @@ namespace Infrastructure.Services
                     })
                     .ToListAsync();
 
+                // TODO: Service Response Model 하나로 반환할 데이터를 다 입력하신 다음 Model 객체 하나만 반환하도록 수정해주세요.
                 var totalCount = userList.Count;
                 
                 var list = (from user in userList
@@ -188,7 +193,7 @@ namespace Infrastructure.Services
                 return (false, 500, null, 0);
             }
         }
-
+        
         public async Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx)
         {
             try
@@ -240,7 +245,7 @@ namespace Infrastructure.Services
                 return (false, 500, null);
             }
         }
-
+        
                 public async Task<DefaultReturn> AddUser(AddUserRequest request)
         {
             try
@@ -264,7 +269,7 @@ namespace Infrastructure.Services
                     pwValid = true;
                 }
                 #endregion
-                
+
                 if (idValid == true && pwValid == true)
                 {
                     var nowUnixTime = DateTime.UtcNow;

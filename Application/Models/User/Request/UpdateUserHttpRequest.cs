@@ -5,12 +5,10 @@ namespace Application.Models.User.Request;
 
 public class UpdateUserHttpRequest
 {
-    [Required]
-    public string UserId { get; set; } = "";
-        
-    [Required]
-    public string UserPw { get; set; } = "";
-        
+    [Required] public string UserId { get; set; } = "";
+
+    [Required] public string UserPw { get; set; } = "";
+
     public int? LifeBestScore { get; set; }
 
     public UpdateUserParameterModel ToUpdateUserHttpRequest(int idx)
