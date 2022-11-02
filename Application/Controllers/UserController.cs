@@ -1,14 +1,12 @@
-using Domain.Entities;
-using Infrastructure.Models.Request;
 using Infrastructure.Models.Response;
 using Microsoft.AspNetCore.Mvc;
 using Infrastructure.Services;
+using Application.Models.User.Request;
 
 namespace Application.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [Produces("application/json")]
     
     public class UserController : ControllerBase
     {
@@ -26,15 +24,11 @@ namespace Application.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> PostUser([FromBody] AddUserRequest model)
+        public async Task<ActionResult> PostUser([FromBody] AddUserHttpRequest model)
         {
-            var result = await _user.AddUser(
-                model.UserId,
-                model.UserPw,
-                model.LifeBestScore
-            );
+            var result = await _user.AddUser(model.ToAddUserHttpRequest());
 
-            if (result.isSuccess == false)
+            if (result.IsSuccess == false)
             {
                 Console.WriteLine("post fail");
                 return StatusCode(StatusCodes.Status404NotFound);
@@ -44,9 +38,14 @@ namespace Application.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetUsers()
+        public async Task<ActionResult> GetUsers([FromQuery] UsersListParameterModel model)
         {
-            var result = await _user.GetUsers();
+            model.Page = model.Page == 0 ? 1 : model.Page;
+            
+            var result = await _user.GetUsers(
+                model.Page,
+                model.PageSize
+                );
 
             if (result.isSuccess == false)
             {
@@ -59,6 +58,38 @@ namespace Application.Controllers
             return StatusCode(StatusCodes.Status200OK, responseModel);
         }
 
+        [HttpGet("above/{score}")]
+        public async Task<ActionResult> GetUsersAbove([FromRoute] int score)
+        {
+            var result = await _user.GetUsersAbove(score);
+
+            if (result.isSuccess == false)
+            {
+                Console.WriteLine("get user list fail");
+                return StatusCode(StatusCodes.Status404NotFound, null);
+            }
+
+            UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        
+            return StatusCode(StatusCodes.Status200OK, responseModel);
+        }
+        
+        [HttpGet("below/{score}")]
+        public async Task<ActionResult> GetUsersBelow([FromRoute] int score)
+        {
+            var result = await _user.GetUsersBelow(score);
+
+            if (result.isSuccess == false)
+            {
+                Console.WriteLine("get user list fail");
+                return StatusCode(StatusCodes.Status404NotFound, null);
+            }
+
+            UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+
+            return StatusCode(StatusCodes.Status200OK, responseModel);
+        }
+        
         [HttpGet("{idx}")]
         public async Task<ActionResult> GetUserDetails([FromRoute] int idx)
         {
@@ -70,7 +101,7 @@ namespace Application.Controllers
                 return StatusCode(StatusCodes.Status404NotFound, null);
             }
 
-            return StatusCode(StatusCodes.Status200OK, result.details);;           
+            return StatusCode(StatusCodes.Status200OK, result.details);          
         }
 
 
@@ -89,29 +120,24 @@ namespace Application.Controllers
         }
 
         [HttpPut("{idx}")]
-        public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserParameterModel model)
+        public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserHttpRequest model)
         {
-            var result = await _user.UpdateUser(
-                    idx,
-                    model.UserId,
-                    model.UserPw,
-                    model.LifeBestScore
-                );
-            
+            var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(idx));
+  
             if (result.isSuccess == false)
             {
                 Console.WriteLine("update user details fail");
                 return StatusCode(StatusCodes.Status404NotFound);
             }
-
+        
             var result2 = await _user.GetUserDetails(idx);
-            
+        
             if (result2.isSuccess == false)
             {
                 Console.WriteLine("update user details fail");
                 return StatusCode(StatusCodes.Status404NotFound);
             }
-            
+        
             return StatusCode(StatusCodes.Status200OK, result2.details);
         }
     }

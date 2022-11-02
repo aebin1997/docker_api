@@ -1,23 +1,24 @@
+using System.Text.RegularExpressions;
 using Domain.Entities;
 using Infrastructure.Models.Response;
 using Infrastructure.Context;
 using Infrastructure.Models.Request;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using Serilog.Context;
+using Infrastructure.Models.Return; 
 
 namespace Infrastructure.Services
 {
     public interface IUserService
     {
-        Task<(bool isSuccess, int errorCode)> AddUser(string userId, string userPw, int? lifeBestScore);
-        Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
-        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers();
+        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers(int page, int pageSize);
+        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersAbove(int score);
+        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow(int score);
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
-        Task<(bool isSuccess, int errorCode)> UpdateUser(int idx, string userId, string userPw, int? lifeBestScore);
+        Task<DefaultReturn> AddUser(AddUserRequest request);
+        Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);   
+        Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
     }
     
     public class UserService : IUserService
@@ -45,62 +46,7 @@ namespace Infrastructure.Services
             return localDt;
         }
 
-        public async Task<(bool isSuccess, int errorCode)> AddUser(string userId, string userPw, int? lifeBestScore)
-        {
-            try
-            {
-                var nowUnixTime = DateTime.UtcNow;
-                var user = new UserModel
-                {
-                    Created = nowUnixTime,
-                    Deleted = false,
-                    LifeBestScore = lifeBestScore,
-                    Updated = nowUnixTime,
-                    UserId = userId,
-                    UserPw = userPw
-                };
-
-                await _db.Users.AddAsync(user);
-                await _db.SaveChangesAsync();
-                
-                return (true, 0);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return (false, 3031);
-            }
-        }
-
-        public async Task<(bool isSuccess, int errorCode)> DeleteUser(int idx)
-        {
-            try
-            {
-                var data = await _db.Users
-                    .Where(p => p.Deleted == false
-                                && p.Idx == idx
-                    )
-                    .FirstOrDefaultAsync();
-
-                if (data == null)
-                {
-                    return (false, 3043);
-                }
-
-                data.Deleted = true;
-
-                await _db.SaveChangesAsync();
-                
-                return (true, 0);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return (false, 3032);
-            }
-        }
-
-        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers()
+        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers(int page, int pageSize)
         {
             try
             {
@@ -108,6 +54,57 @@ namespace Infrastructure.Services
                     .AsNoTracking() 
                     .Where(p => p.Deleted == false);
 
+                var userList = await query
+                    .Select(p => new
+                    {
+                        p.Idx, p.UserId, p.UserPw, p.LifeBestScore, p.Created, p.Updated, p.Deleted
+                    })
+                    .ToListAsync();
+
+                var pageList = userList.OrderByDescending(p => p.Idx)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var totalCount = userList.Count;
+                
+                var list = (from user in pageList
+                    select new UserList
+                    {
+                        Idx = user.Idx,
+                        UserId = user.UserId,
+                        UserPw = user.UserPw,
+                        LifeBestScore = user.LifeBestScore,
+                        Created = DateTimeConverter(user.Created),
+                        Updated = DateTimeConverter(user.Updated),
+                        Deleted = user.Deleted
+                    }).ToList();
+
+                return (true, 0, list, totalCount);
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           page = page,
+                           pageSize = pageSize
+                       }))
+                {
+                    _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
+                }
+                
+                return (false, 500, null, 0);
+            }
+        }
+
+        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersAbove(int score)
+        {
+            try
+            {
+                var query = _db.Users
+                    .AsNoTracking()
+                    .Where(p => p.Deleted == false && p.LifeBestScore >= score);
+                
                 var userList = await query
                     .Select(p => new
                     {
@@ -131,9 +128,62 @@ namespace Infrastructure.Services
 
                 return (true, 0, list, totalCount);
             }
-            catch
+            catch (Exception ex)
             {
-                return (false, 3033, null, 0);
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           score = score
+                       }))
+                {
+                    _logger.LogError(ex, "특정 스코어 이상의 회원 조회 중 오류 발생");
+                }
+                
+                return (false, 500, null, 0);
+            }
+        }
+
+        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow(int score)
+        {
+            try
+            {
+                var query = _db.Users
+                    .AsNoTracking()
+                    .Where(p => p.Deleted == false && p.LifeBestScore <= score);
+                
+                var userList = await query
+                    .Select(p => new
+                    {
+                        p.Idx, p.UserId, p.UserPw, p.LifeBestScore, p.Created, p.Updated, p.Deleted
+                    })
+                    .ToListAsync();
+
+                var totalCount = userList.Count;
+                
+                var list = (from user in userList
+                    select new UserList
+                    {
+                        Idx = user.Idx,
+                        UserId = user.UserId,
+                        UserPw = user.UserPw,
+                        LifeBestScore = user.LifeBestScore,
+                        Created = DateTimeConverter(user.Created),
+                        Updated = DateTimeConverter(user.Updated),
+                        Deleted = user.Deleted
+                    }).ToList();
+
+                return (true, 0, list, totalCount);
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           score = score
+                       }))
+                {
+                    _logger.LogError(ex, "특정 스코어 이하의 회원 조회 중 오류 발생");
+                }
+                
+                return (false, 500, null, 0);
             }
         }
 
@@ -175,19 +225,92 @@ namespace Infrastructure.Services
 
                 return (true, 0, details);
             }
-            catch
+            catch (Exception ex)
             {
-                return (false, 3034, null);
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           idx = idx
+                       }))
+                {
+                    _logger.LogError(ex, "회원 상세 조회 중 오류 발생");
+                }
+                
+                return (false, 500, null);
             }
         }
 
-        public async Task<(bool isSuccess, int errorCode)> UpdateUser(int idx, string userId, string userPw, int? lifeBestScore)
+                public async Task<DefaultReturn> AddUser(AddUserRequest request)
+        {
+            try
+            {
+                // TODO: 유효성 검사 로직 실행
+                var idValid = false;
+                var pwValid = false;
+                
+                #region UserId 유효성 검사
+                Regex regex = new Regex(@"^[\w_-]+$");
+
+                if (regex.IsMatch(request.UserId))
+                {
+                    idValid = true;
+                }
+                #endregion
+                
+                #region UserPw 유효성 검사
+                if (request.UserPw.Length == 4)
+                {
+                    pwValid = true;
+                }
+                #endregion
+                
+                if (idValid == true && pwValid == true)
+                {
+                    var nowUnixTime = DateTime.UtcNow;
+                    var user = new UserModel
+                    {
+                        UserId = request.UserId,
+                        UserPw = request.UserPw,
+                        LifeBestScore = request.LifeBestScore,
+                        Created = nowUnixTime, 
+                        Updated = nowUnixTime, // 없어도 되게 DB 구성했는데 왜 안되는지
+                        Deleted = false,
+                    };
+
+                    await _db.Users.AddAsync(user);
+                    await _db.SaveChangesAsync();
+
+                    var defaultReturn = new DefaultReturn(true, 0);
+
+                    return (defaultReturn); 
+                }
+
+                var failReturn = new DefaultReturn(false, 400);
+                return (failReturn);
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           userId = request.UserId,
+                           userPw = request.UserPw,
+                           lifeBestScore = request.LifeBestScore
+                       }))
+                {
+                    _logger.LogError(ex, "회원 추가 중 오류 발생");
+                }
+
+                var failReturn = new DefaultReturn(false, 400);
+                return (failReturn);
+            }
+        }
+
+        public async Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request)
         {
             try
             {
                 var data = await _db.Users
                     .Where(p => p.Deleted == false
-                                && p.Idx == idx
+                                && p.Idx == request.Idx
                                 )
                     .FirstOrDefaultAsync();
 
@@ -198,50 +321,93 @@ namespace Infrastructure.Services
 
                 var updateUserRequest = new List<UpdateUserRequest>();
 
-                if (string.IsNullOrEmpty(userId) == false)
+                if (string.IsNullOrEmpty(request.UserId) == false)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "user_id",
                         DataBefore = data.UserId,
-                        DataAfter = userId
+                        DataAfter = request.UserId
                     });
-                    data.UserId = userId;
+                    data.UserId = request.UserId;
                 }
                 
-                if (string.IsNullOrEmpty(userPw) == false)
+                if (string.IsNullOrEmpty(request.UserPw) == false)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "user_pw",
                         DataBefore = data.UserPw,
-                        DataAfter = userPw
+                        DataAfter = request.UserPw
                     });
-                    data.UserPw = userPw;
+                    data.UserPw = request.UserPw;
                 }
                 
-                if (lifeBestScore > 0)
+                if (request.LifeBestScore > 0)
                 {
                     updateUserRequest.Add(new UpdateUserRequest()
                     {
                         ColumnName = "life_best_score",
                         DataBefore = data.LifeBestScore.ToString(),
-                        DataAfter = lifeBestScore.ToString() 
+                        DataAfter = request.LifeBestScore.ToString() 
                     });
-                    data.LifeBestScore = (int)lifeBestScore;
+                    data.LifeBestScore = (int)request.LifeBestScore;
                 }
 
                 if (updateUserRequest.Count > 0)
                 {
                     await _db.SaveChangesAsync();
                 }
-
                 return (true, 0);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e);
-                return (false, 3035);
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           idx = request.Idx,
+                           userId = request.UserId,
+                           userPw = request.UserPw,
+                           lifeBestScore = request.LifeBestScore
+                       }))
+                {
+                    _logger.LogError(ex, "회원 수정 조회 중 오류 발생");
+                }
+                
+                return (false, 500);
+            }
+        }
+        
+        public async Task<(bool isSuccess, int errorCode)> DeleteUser(int idx)
+        {
+            try
+            {
+                var data = await _db.Users
+                    .Where(p => p.Deleted == false
+                                && p.Idx == idx
+                    )
+                    .FirstOrDefaultAsync();
+
+                if (data == null)
+                {
+                    return (false, 3043);
+                }
+
+                data.Deleted = true;
+
+                await _db.SaveChangesAsync();
+                return (true, 0);
+            }
+            catch (Exception ex)
+            {
+                using (LogContext.PushProperty("JsonData", new 
+                       {
+                           idx = idx
+                       }))
+                {
+                    _logger.LogError(ex, "회원 수정 조회 중 오류 발생");
+                }
+                
+                return (false, 500);
             }
         }
     }
