@@ -146,7 +146,9 @@ namespace Infrastructure.Services
         {
             try
             {
-                var query = _db.Users
+                var query = _db.Users  
+                        
+                        
                     .AsNoTracking()
                     .Where(p => p.Deleted == false && p.LifeBestScore <= score);
                 
@@ -208,7 +210,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 3044, null);
+                    return (false, 404, null);
                 }
 
                 var localCreated = DateTimeConverter(data.Created);
@@ -316,7 +318,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 3045);
+                    return (false, 400);
                 }
 
                 var updateUserRequest = new List<UpdateUserRequest>();
@@ -389,7 +391,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 3043);
+                    return (false, 400);
                 }
 
                 data.Deleted = true;

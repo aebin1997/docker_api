@@ -1,7 +1,10 @@
+using Amazon.SimpleNotificationService.Model;
 using Infrastructure.Models.Response;
 using Microsoft.AspNetCore.Mvc;
 using Infrastructure.Services;
 using Application.Models.User.Request;
+using Newtonsoft.Json.Linq;
+using Serilog.Context;
 
 namespace Application.Controllers
 {
@@ -23,20 +26,6 @@ namespace Application.Controllers
             _user = user;
         }
 
-        [HttpPost]
-        public async Task<ActionResult> PostUser([FromBody] AddUserHttpRequest model)
-        {
-            var result = await _user.AddUser(model.ToAddUserHttpRequest());
-
-            if (result.IsSuccess == false)
-            {
-                Console.WriteLine("post fail");
-                return StatusCode(StatusCodes.Status404NotFound);
-            }
-
-            return StatusCode(StatusCodes.Status201Created);
-        }
-
         [HttpGet]
         public async Task<ActionResult> GetUsers([FromQuery] UsersListParameterModel model)
         {
@@ -45,12 +34,19 @@ namespace Application.Controllers
             var result = await _user.GetUsers(
                 model.Page,
                 model.PageSize
-                );
+            );
 
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get user list fail");
-                return StatusCode(StatusCodes.Status404NotFound, null);
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("회원 목록 조회 실패 에러코드가 반환됨"); 
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
@@ -65,8 +61,15 @@ namespace Application.Controllers
 
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get user list fail");
-                return StatusCode(StatusCodes.Status404NotFound, null);
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           score = JObject.FromObject(score)
+                       }))
+                {
+                    _logger.LogError("특정 점수 이상 회원 조회 실패 에러코드가 반환됨"); 
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
@@ -81,8 +84,15 @@ namespace Application.Controllers
 
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get user list fail");
-                return StatusCode(StatusCodes.Status404NotFound, null);
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           score = JObject.FromObject(score)
+                       }))
+                {
+                    _logger.LogError("특정 점수 이하 회원 조회 실패 에러코드가 반환됨"); 
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
@@ -97,13 +107,94 @@ namespace Application.Controllers
             
             if (result.isSuccess == false)
             {
-                Console.WriteLine("get user details fail");
-                return StatusCode(StatusCodes.Status404NotFound, null);
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           idx = JObject.FromObject(idx)
+                       }))
+                {
+                    _logger.LogError("회원 상세 조회 실패 에러코드가 반환됨"); 
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return StatusCode(StatusCodes.Status200OK, result.details);          
         }
+        
+        [HttpPost]
+        public async Task<ActionResult> PostUser([FromBody] AddUserHttpRequest model)
+        {
+            var result = await _user.AddUser(model.ToAddUserHttpRequest());
 
+            if (result.IsSuccess == false)
+            {
+                if (result.ErrorCode == 400)
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               model = JObject.FromObject(model)
+                           }))
+                    {
+                        _logger.LogError("유효성 검사 실패 에러코드가 반환됨"); 
+                    } 
+                }
+                else
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               model = JObject.FromObject(model)
+                           }))
+                    {
+                        _logger.LogError("회원 추가 실패 에러코드가 반환됨"); 
+                    }
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpPut("{idx}")]
+        public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserHttpRequest model)
+        {
+            var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(idx));
+
+            if (result.isSuccess == false)
+            {
+                if (result.errorCode == 400)
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               model = JObject.FromObject(model)
+                           }))
+                    {
+                        _logger.LogError("존재하지 않는 아이디");
+                    }
+                }
+                else
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               model = JObject.FromObject(model)
+                           }))
+                    {
+                        _logger.LogError("회원 수정 실패 에러코드가 반환됨");
+                    }
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            var result2 = await _user.GetUserDetails(idx);
+
+                if (result2.isSuccess == false)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                return StatusCode(StatusCodes.Status200OK, result2.details);
+            }
 
         [HttpDelete("{idx}")]
         public async Task<ActionResult> DeleteUser([FromRoute] int idx)
@@ -112,33 +203,31 @@ namespace Application.Controllers
             
             if (result.isSuccess == false)
             {
-                Console.WriteLine("user delete fail");
-                return StatusCode(StatusCodes.Status404NotFound);
+                if (result.errorCode == 400)
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               idx = JObject.FromObject(idx)
+                           }))
+                    {
+                        _logger.LogError("존재하지 않는 아이디");
+                    }
+                }
+                else
+                {
+                    using (LogContext.PushProperty("JsonData", new
+                           {
+                               idx = JObject.FromObject(idx)
+                           }))
+                    {
+                        _logger.LogError("회원 삭제 실패 에러코드가 반환됨");
+                    }
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
             
             return StatusCode(StatusCodes.Status200OK);
-        }
-
-        [HttpPut("{idx}")]
-        public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserHttpRequest model)
-        {
-            var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(idx));
-  
-            if (result.isSuccess == false)
-            {
-                Console.WriteLine("update user details fail");
-                return StatusCode(StatusCodes.Status404NotFound);
-            }
-        
-            var result2 = await _user.GetUserDetails(idx);
-        
-            if (result2.isSuccess == false)
-            {
-                Console.WriteLine("update user details fail");
-                return StatusCode(StatusCodes.Status404NotFound);
-            }
-        
-            return StatusCode(StatusCodes.Status200OK, result2.details);
         }
     }
 }
