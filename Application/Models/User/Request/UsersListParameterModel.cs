@@ -10,4 +10,8 @@ public class UsersListParameterModel
     [Required]
     [Range(2, 10)]
     public int PageSize { get; set; }
+
+    public int StartLifeBestScore { get; set; }
+
+    public int EndLifeBestScore { get; set; }
 }

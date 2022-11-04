@@ -12,11 +12,11 @@ namespace Infrastructure.Services
 {
     public interface IUserService
     {
-        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers(int page, int pageSize);
-        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersAbove(int score);
-        Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow(int score);
+        Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(int page, int pageSize);
+        Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersAbove(int score);
+        Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersBelow(int score);
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
-        Task<DefaultReturn> AddUser(AddUserRequest request);
+        Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request);
         Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);
         Task<(bool isSuccess, int errorCode)> DeleteUser(int idx);
     }
@@ -46,7 +46,7 @@ namespace Infrastructure.Services
             return localDt;
         }
 
-        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsers(int page, int pageSize)
+        public async Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(int page, int pageSize)
         {
             try
             {
@@ -70,21 +70,20 @@ namespace Infrastructure.Services
                     .Take(pageSize)
                     .ToList();
 
-                var totalCount = userList.Count;
-                
-                var list = (from user in pageList
-                    select new UserList
+                var response = new UserListResponse();
+                response.TotalCount = userList.Count;
+                response.List = (from user in pageList
+                    select new UserListItem
                     {
                         Idx = user.Idx,
                         UserId = user.UserId,
-                        UserPw = user.UserPw,
                         LifeBestScore = user.LifeBestScore,
                         Created = DateTimeConverter(user.Created),
                         Updated = DateTimeConverter(user.Updated),
                         Deleted = user.Deleted
                     }).ToList();
 
-                return (true, 0, list, totalCount);
+                return (true, 0, response);
             }
             catch (Exception ex)
             {
@@ -97,11 +96,11 @@ namespace Infrastructure.Services
                     _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
                 }
                 
-                return (false, 500, null, 0);
+                return (false, 500, null);
             }
         }
 
-        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersAbove(int score)
+        public async Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersAbove(int score)
         {
             try
             {
@@ -120,11 +119,10 @@ namespace Infrastructure.Services
                 var totalCount = userList.Count;
                 
                 var list = (from user in userList
-                    select new UserList
+                    select new UserListItem
                     {
                         Idx = user.Idx,
                         UserId = user.UserId,
-                        UserPw = user.UserPw,
                         LifeBestScore = user.LifeBestScore,
                         Created = DateTimeConverter(user.Created),
                         Updated = DateTimeConverter(user.Updated),
@@ -147,7 +145,7 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task<(bool isSuccess, int errorCode, List<UserList> list, int totalCount)> GetUsersBelow(int score)
+        public async Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersBelow(int score)
         {
             try
             {
@@ -167,11 +165,10 @@ namespace Infrastructure.Services
                 var totalCount = userList.Count;
                 
                 var list = (from user in userList
-                    select new UserList
+                    select new UserListItem
                     {
                         Idx = user.Idx,
                         UserId = user.UserId,
-                        UserPw = user.UserPw,
                         LifeBestScore = user.LifeBestScore,
                         Created = DateTimeConverter(user.Created),
                         Updated = DateTimeConverter(user.Updated),
@@ -246,53 +243,48 @@ namespace Infrastructure.Services
             }
         }
         
-                public async Task<DefaultReturn> AddUser(AddUserRequest request)
+        public async Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request)
         {
             try
             {
                 // TODO: 유효성 검사 로직 실행
-                var idValid = false;
-                var pwValid = false;
-                
                 #region UserId 유효성 검사
                 Regex regex = new Regex(@"^[\w_-]+$");
 
                 if (regex.IsMatch(request.UserId))
                 {
-                    idValid = true;
+                    _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
+                    
+                    // TODO: User ID에 대한 유효성 검사 실패 로그
+                    return (false, 1000);
                 }
                 #endregion
                 
                 #region UserPw 유효성 검사
                 if (request.UserPw.Length == 4)
                 {
-                    pwValid = true;
+                    _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    
+                    // TODO: User Password에 대한 유효성 검사 실패 로그
+                    return (false, 1001);
                 }
                 #endregion
 
-                if (idValid == true && pwValid == true)
+                var nowUnixTime = DateTime.UtcNow;
+                var user = new UserModel
                 {
-                    var nowUnixTime = DateTime.UtcNow;
-                    var user = new UserModel
-                    {
-                        UserId = request.UserId,
-                        UserPw = request.UserPw,
-                        LifeBestScore = request.LifeBestScore,
-                        Created = nowUnixTime, 
-                        Updated = nowUnixTime, // 없어도 되게 DB 구성했는데 왜 안되는지
-                        Deleted = false,
-                    };
+                    UserId = request.UserId,
+                    UserPw = request.UserPw,
+                    LifeBestScore = request.LifeBestScore,
+                    Created = nowUnixTime, 
+                    Updated = nowUnixTime, // 없어도 되게 DB 구성했는데 왜 안되는지
+                    Deleted = false,
+                };
 
-                    await _db.Users.AddAsync(user);
-                    await _db.SaveChangesAsync();
+                await _db.Users.AddAsync(user);
+                await _db.SaveChangesAsync();
 
-                    var defaultReturn = new DefaultReturn(true, 0);
-
-                    return (defaultReturn); 
-                }
-
-                var failReturn = new DefaultReturn(false, 400);
-                return (failReturn);
+                return (true, 0); 
             }
             catch (Exception ex)
             {
@@ -306,8 +298,7 @@ namespace Infrastructure.Services
                     _logger.LogError(ex, "회원 추가 중 오류 발생");
                 }
 
-                var failReturn = new DefaultReturn(false, 400);
-                return (failReturn);
+                return (false, 1002);
             }
         }
 

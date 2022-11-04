@@ -5,13 +5,12 @@ public class UserListHttpResponse
 {
     public int TotalCount { get; set; }
 
-    public List<UserList> List { get; set; } 
+    public List<UserListItem> List { get; set; } 
 
-    public UserListHttpResponse(int totalCount, List<UserList> list)
+    public UserListHttpResponse(UserListResponse response)
     {
-        TotalCount = totalCount;
-        List = list;
+        TotalCount = response.TotalCount;
+        List = response.List;
     }
-        
 }
 

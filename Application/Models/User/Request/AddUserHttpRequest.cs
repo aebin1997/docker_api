@@ -13,7 +13,7 @@ public class AddUserHttpRequest
 
     public int? LifeBestScore { get; set; }
 
-    public AddUserRequest ToAddUserHttpRequest()
+    public AddUserRequest ToAddUserRequest()
     {
         return new AddUserRequest()
         {

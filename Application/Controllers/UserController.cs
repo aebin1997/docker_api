@@ -26,10 +26,12 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
+    // TODO: Http Request 모델 추가, 필터 기능 추가(paging 기능 추가(PageSize 조절 가능), LifeBestScore 검색 추가 (이상, 이하)
     public async Task<ActionResult> GetUsers([FromQuery] UsersListParameterModel model)
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
+        // TODO: Service에 넘길 때 Model을 파싱하여 전달해주세요.
         var result = await _user.GetUsers(
             model.Page,
             model.PageSize
@@ -37,6 +39,8 @@ public class UserController : ControllerBase
 
         if (result.isSuccess == false)
         {
+            // TODO: 필터 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
+            // TODO: try-catch로 반환되는 에러는 500 Error로 반환
             using (LogContext.PushProperty("JsonData", new
                    {
                        model = JObject.FromObject(model)
@@ -48,7 +52,8 @@ public class UserController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        // TODO: HttpRequest model 새로 생성하여 반환 처리하도록 수정해주세요.
+        var responseModel = new UserListHttpResponse(result.response);
         
         return StatusCode(StatusCodes.Status200OK, responseModel);
     }
@@ -71,7 +76,8 @@ public class UserController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        // UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        UserListResponse responseModel = new UserListResponse();
     
         return StatusCode(StatusCodes.Status200OK, responseModel);
     }
@@ -94,7 +100,8 @@ public class UserController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        // UserListResponse responseModel = new UserListResponse(result.totalCount, result.list);
+        UserListResponse responseModel = new UserListResponse();
 
         return StatusCode(StatusCodes.Status200OK, responseModel);
     }
@@ -123,19 +130,22 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> PostUser([FromBody] AddUserHttpRequest model)
     {
-        var result = await _user.AddUser(model.ToAddUserHttpRequest());
+        var result = await _user.AddUser(model.ToAddUserRequest());
 
-        if (result.IsSuccess == false)
+        if (result.isSuccess == false)
         {
-            if (result.ErrorCode == 400)
+            var badRequestErrorCode = new int[] { 1000, 1001 };
+            var serverErrorCode = new int[] { 1002 };
+            
+            // TODO: 입력할 데이터에 대한 유효성 검사로 인해 반환되는 에러는 Http Status 400 Error로 반환
+            // TODO: try-catch로 반환되는 에러는 500 Error로 반환
+            if (badRequestErrorCode.Contains(result.errorCode))
             {
-                using (LogContext.PushProperty("JsonData", new
-                       {
-                           model = JObject.FromObject(model)
-                       }))
-                {
-                    _logger.LogError("유효성 검사 실패 에러코드가 반환됨"); 
-                } 
+                return StatusCode(StatusCodes.Status400BadRequest);
+            }
+            else if (serverErrorCode.Contains(result.errorCode))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
             {
@@ -144,11 +154,11 @@ public class UserController : ControllerBase
                            model = JObject.FromObject(model)
                        }))
                 {
-                    _logger.LogError("회원 추가 실패 에러코드가 반환됨"); 
+                    _logger.LogError("회원 추가에 대한 결과로 정의되지 않은 에러코드가 반환됨"); 
                 }
+                
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         return StatusCode(StatusCodes.Status201Created);
@@ -228,131 +238,4 @@ public class UserController : ControllerBase
         
         return StatusCode(StatusCodes.Status200OK);
     }
-
-    // [HttpGet]
-    // // TODO: Http Request 모델 추가, 필터 기능 추가(paging 기능 추가(PageSize 조절 가능), LifeBestScore 검색 추가 (이상, 이하)
-    // public async Task<ActionResult> GetUsers()
-    // {
-    //     // TODO: Service에 넘길 때 Model을 파싱하여 전달해주세요.
-    //     var result = await _user.GetUsers();
-    //
-    //     if (result.isSuccess == false)
-    //     {
-    //         // TODO: 필터 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
-    //         // TODO: try-catch로 반환되는 에러는 500 Error로 반환
-    //         Console.WriteLine("get user list fail");
-    //         return StatusCode(StatusCodes.Status404NotFound, null);
-    //     }
-    //
-    //     // TODO: HttpRequest model 새로 생성하여 반환 처리하도록 수정해주세요.
-    //     UserListHttpResponse responseModel = new UserListHttpResponse(result.totalCount, result.list);
-    //     
-    //     return StatusCode(StatusCodes.Status200OK, responseModel);
-    // }
-    //
-    // [HttpGet("above")]
-    // public async Task<ActionResult> GetUsersAbove()
-    // {
-    //     // TODO: Service에 넘길 때 Model을 파싱하여 전달해주세요.
-    //     var result = await _user.GetUsers();
-    //
-    //     if (result.isSuccess == false)
-    //     {
-    //         // TODO: 필터 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
-    //         // TODO: try-catch로 반환되는 에러는 500 Error로 반환
-    //         Console.WriteLine("get user list fail");
-    //         return StatusCode(StatusCodes.Status404NotFound, null);
-    //     }
-    //
-    //     // TODO: HttpRequest model 새로 생성하여 반환 처리하도록 수정해주세요.
-    //     UserListHttpResponse responseModel = new UserListHttpResponse(result.totalCount, result.list);
-    //     
-    //     return StatusCode(StatusCodes.Status200OK, responseModel);
-    // }
-    //
-    // [HttpGet("below")]
-    // public async Task<ActionResult> GetUsersBelow()
-    // {
-    //     // TODO: Service에 넘길 때 Model을 파싱하여 전달해주세요.
-    //     var result = await _user.GetUsers();
-    //
-    //     if (result.isSuccess == false)
-    //     {
-    //         // TODO: 필터 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
-    //         // TODO: try-catch로 반환되는 에러는 500 Error로 반환
-    //         Console.WriteLine("get user list fail");
-    //         return StatusCode(StatusCodes.Status404NotFound, null);
-    //     }
-    //
-    //     // TODO: HttpRequest model 새로 생성하여 반환 처리하도록 수정해주세요.
-    //     UserListHttpResponse responseModel = new UserListHttpResponse(result.totalCount, result.list);
-    //     
-    //     return StatusCode(StatusCodes.Status200OK, responseModel);
-    // }
-    //
-    // [HttpGet("{idx}")]
-    // public async Task<ActionResult> GetUserDetails([FromRoute] int idx)
-    // {
-    //     var result = await _user.GetUserDetails(idx);
-    //     
-    //     if (result.isSuccess == false)
-    //     {
-    //         Console.WriteLine("get user details fail");
-    //         return StatusCode(StatusCodes.Status404NotFound, null);
-    //     }
-    //
-    //     return StatusCode(StatusCodes.Status200OK, result.details);;           
-    // }
-    //
-    // [HttpPost]
-    // public async Task<ActionResult> PostUser([FromBody] AddUserHttpRequest model)
-    // {
-    //     var result = await _user.AddUser(model.ToAddUserHttpRequest());
-    //
-    //     if (result.isSuccess == false)
-    //     {
-    //         // TODO: 입력할 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
-    //         // TODO: try-catch로 반환되는 에러는 500 Error로 반환
-    //         Console.WriteLine("post fail");
-    //         return StatusCode(StatusCodes.Status404NotFound);
-    //     }
-    //
-    //     return StatusCode(StatusCodes.Status201Created);
-    // }
-    //
-    // [HttpPut("{idx}")]
-    // public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserHttpRequest model)
-    // {
-    //     var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(idx));
-    //
-    //     if (result.isSuccess == false)
-    //     {
-    //         Console.WriteLine("update user details fail");
-    //         return StatusCode(StatusCodes.Status404NotFound);
-    //     }
-    //     
-    //     var result2 = await _user.GetUserDetails(idx);
-    //     
-    //     if (result2.isSuccess == false)
-    //     {
-    //         Console.WriteLine("update user details fail");
-    //         return StatusCode(StatusCodes.Status404NotFound);
-    //     }
-    //     
-    //     return StatusCode(StatusCodes.Status200OK, result2.details);
-    // }
-    //
-    // [HttpDelete("{idx}")]
-    // public async Task<ActionResult> DeleteUser([FromRoute] int idx)
-    // {
-    //     var result = await _user.DeleteUser(idx);
-    //     
-    //     if (result.isSuccess == false)
-    //     {
-    //         Console.WriteLine("user delete fail");
-    //         return StatusCode(StatusCodes.Status404NotFound);
-    //     }
-    //     
-    //     return StatusCode(StatusCodes.Status200OK);
-    // }
 }
