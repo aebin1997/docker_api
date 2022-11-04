@@ -6,7 +6,7 @@
         <RootNamespace>Domain</RootNamespace>
     </PropertyGroup>
 
-    <!--뭐에 쓰이는건지 모르겠음-->
+    <!-- TODO: [aebin] 뭐에 쓰이는건지 모르겠음 -->
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />

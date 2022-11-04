@@ -96,7 +96,7 @@ public class UserController : ControllerBase
         if (result.isSuccess == false)
         {
             var badRequestErrorCode = new int[] { 1000, 1001 };
-            var serverErrorCode = new int[] { 500 }; // TODO: ??
+            var serverErrorCode = new int[] { 500 }; // TODO: db 조회 실패를 500으로 두고 따로 표기해야하는지
             
             // TODO: 입력할 데이터에 대한 유효성 검사로 인해 반환되는 에러는 Http Status 400 Error로 반환
             // TODO: try-catch로 반환되는 에러는 500 Error로 반환
