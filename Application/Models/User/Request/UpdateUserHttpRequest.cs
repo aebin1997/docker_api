@@ -9,6 +9,7 @@ public class UpdateUserHttpRequest
 
     [Required] public string UserPw { get; set; } = "";
 
+    [Range(0, 150)] 
     public int? LifeBestScore { get; set; }
 
     public UpdateUserParameterModel ToUpdateUserHttpRequest(int idx)

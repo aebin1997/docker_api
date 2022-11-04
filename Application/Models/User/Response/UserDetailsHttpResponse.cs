@@ -9,7 +9,7 @@ public class UserDetailsHttpResponse
     public string UserId { get; set; } = "";
 
     public string UserPw { get; set; } = "";
-
+    
     public int? LifeBestScore { get; set; }
     
     public DateTime Created { get; set; }
@@ -17,4 +17,15 @@ public class UserDetailsHttpResponse
     public DateTime Updated { get; set; }
         
     public bool Deleted { get; set; }
+
+    public UserDetailsHttpResponse(UserDetailsResponse response)
+    {
+        Idx = response.Idx;
+        UserId = response.UserId;
+        UserPw = response.UserPw;
+        LifeBestScore = response.LifeBestScore;
+        Created = response.Created;
+        Updated = response.Updated;
+        Deleted = response.Deleted;
+    }
 }

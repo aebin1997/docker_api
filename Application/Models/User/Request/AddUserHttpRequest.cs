@@ -11,6 +11,7 @@ public class AddUserHttpRequest
     [Required]
     public string UserPw { get; set; } = "";
 
+    [Range(0, 150)] 
     public int? LifeBestScore { get; set; }
 
     public AddUserRequest ToAddUserRequest()

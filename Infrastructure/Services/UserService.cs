@@ -6,15 +6,12 @@ using Infrastructure.Models.Request;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
-using Infrastructure.Models.Return; 
 
 namespace Infrastructure.Services
 {
     public interface IUserService
     {
-        Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(int page, int pageSize);
-        Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersAbove(int score);
-        Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersBelow(int score);
+        Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(GetUsers request);
         Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx);
         Task<(bool isSuccess, int errorCode)> AddUser(AddUserRequest request);
         Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request);
@@ -46,28 +43,33 @@ namespace Infrastructure.Services
             return localDt;
         }
 
-        public async Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(int page, int pageSize)
+        public async Task<(bool isSuccess, int errorCode, UserListResponse response)> GetUsers(GetUsers request)
         {
             try
             {
                 // TODO: 필터에 대한 유효성 검사 로직 개발
-                
+                if (request.Page < 0) 
+                {
+                    _logger.LogInformation("값이 정수가 아님");
+                    
+                    return (false, 1004, null);
+                }
+
+                // TODO: 필터 로직 개발
                 var query = _db.Users
                     .AsNoTracking()
-                    .Where(p => p.Deleted == false);
-                
-                // TODO: 필터 로직 개발
-                
+                    .Where(p => p.Deleted == false && p.LifeBestScore >= request.StartLifeBestScore && p.LifeBestScore <= request.EndLifeBestScore);
+                    
                 var userList = await query
                     .Select(p => new
                     {
                         p.Idx, p.UserId, p.UserPw, p.LifeBestScore, p.Created, p.Updated, p.Deleted
                     })
                     .ToListAsync();
-
+                
                 var pageList = userList.OrderByDescending(p => p.Idx)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
                     .ToList();
 
                 var response = new UserListResponse();
@@ -89,8 +91,8 @@ namespace Infrastructure.Services
             {
                 using (LogContext.PushProperty("JsonData", new 
                        {
-                           page = page,
-                           pageSize = pageSize
+                           page = request.Page,
+                           pageSize = request.PageSize
                        }))
                 {
                     _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
@@ -99,102 +101,18 @@ namespace Infrastructure.Services
                 return (false, 500, null);
             }
         }
-
-        public async Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersAbove(int score)
-        {
-            try
-            {
-                var query = _db.Users
-                    .AsNoTracking()
-                    .Where(p => p.Deleted == false && p.LifeBestScore >= score);
-                
-                var userList = await query
-                    .Select(p => new
-                    {
-                        p.Idx, p.UserId, p.UserPw, p.LifeBestScore, p.Created, p.Updated, p.Deleted
-                    })
-                    .ToListAsync();
-
-                // TODO: Service Response Model 하나로 반환할 데이터를 다 입력하신 다음 Model 객체 하나만 반환하도록 수정해주세요.
-                var totalCount = userList.Count;
-                
-                var list = (from user in userList
-                    select new UserListItem
-                    {
-                        Idx = user.Idx,
-                        UserId = user.UserId,
-                        LifeBestScore = user.LifeBestScore,
-                        Created = DateTimeConverter(user.Created),
-                        Updated = DateTimeConverter(user.Updated),
-                        Deleted = user.Deleted
-                    }).ToList();
-
-                return (true, 0, list, totalCount);
-            }
-            catch (Exception ex)
-            {
-                using (LogContext.PushProperty("JsonData", new 
-                       {
-                           score = score
-                       }))
-                {
-                    _logger.LogError(ex, "특정 스코어 이상의 회원 조회 중 오류 발생");
-                }
-                
-                return (false, 500, null, 0);
-            }
-        }
-
-        public async Task<(bool isSuccess, int errorCode, List<UserListItem> list, int totalCount)> GetUsersBelow(int score)
-        {
-            try
-            {
-                var query = _db.Users  
-                        
-                        
-                    .AsNoTracking()
-                    .Where(p => p.Deleted == false && p.LifeBestScore <= score);
-                
-                var userList = await query
-                    .Select(p => new
-                    {
-                        p.Idx, p.UserId, p.UserPw, p.LifeBestScore, p.Created, p.Updated, p.Deleted
-                    })
-                    .ToListAsync();
-
-                var totalCount = userList.Count;
-                
-                var list = (from user in userList
-                    select new UserListItem
-                    {
-                        Idx = user.Idx,
-                        UserId = user.UserId,
-                        LifeBestScore = user.LifeBestScore,
-                        Created = DateTimeConverter(user.Created),
-                        Updated = DateTimeConverter(user.Updated),
-                        Deleted = user.Deleted
-                    }).ToList();
-
-                return (true, 0, list, totalCount);
-            }
-            catch (Exception ex)
-            {
-                using (LogContext.PushProperty("JsonData", new 
-                       {
-                           score = score
-                       }))
-                {
-                    _logger.LogError(ex, "특정 스코어 이하의 회원 조회 중 오류 발생");
-                }
-                
-                return (false, 500, null, 0);
-            }
-        }
         
         public async Task<(bool isSuccess, int errorCode, UserDetailsResponse details)> GetUserDetails(int idx)
         {
             try
             {
+                if (idx < 0) 
+                {
+                    _logger.LogInformation("값이 정수가 아님");
+                    
+                    return (false, 1004, null);
+                }
+
                 var data = await _db.Users
                     .AsNoTracking() 
                     .Where(p => p.Deleted == false && p.Idx == idx)
@@ -212,7 +130,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 404, null);
+                    return (false, 1005, null);
                 }
 
                 var localCreated = DateTimeConverter(data.Created);
@@ -251,7 +169,7 @@ namespace Infrastructure.Services
                 #region UserId 유효성 검사
                 Regex regex = new Regex(@"^[\w_-]+$");
 
-                if (regex.IsMatch(request.UserId))
+                if (regex.IsMatch(request.UserId) == false)
                 {
                     _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
                     
@@ -261,7 +179,7 @@ namespace Infrastructure.Services
                 #endregion
                 
                 #region UserPw 유효성 검사
-                if (request.UserPw.Length == 4)
+                if (request.UserPw.Length != 4)
                 {
                     _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
                     
@@ -269,7 +187,7 @@ namespace Infrastructure.Services
                     return (false, 1001);
                 }
                 #endregion
-
+                
                 var nowUnixTime = DateTime.UtcNow;
                 var user = new UserModel
                 {
@@ -298,7 +216,7 @@ namespace Infrastructure.Services
                     _logger.LogError(ex, "회원 추가 중 오류 발생");
                 }
 
-                return (false, 1002);
+                return (false, 500);
             }
         }
 
@@ -306,6 +224,36 @@ namespace Infrastructure.Services
         {
             try
             {
+                if (request.Idx < 0) 
+                {
+                    _logger.LogInformation("값이 정수가 아님");
+                    
+                    return (false, 1004);
+                }
+                
+                // TODO: 유효성 검사 로직 실행
+                #region UserId 유효성 검사
+                Regex regex = new Regex(@"^[\w_-]+$");
+
+                if (regex.IsMatch(request.UserId) == false)
+                {
+                    _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
+                    
+                    // TODO: User ID에 대한 유효성 검사 실패 로그
+                    return (false, 1000);
+                }
+                #endregion
+                
+                #region UserPw 유효성 검사
+                if (request.UserPw.Length != 4)
+                {
+                    _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    
+                    // TODO: User Password에 대한 유효성 검사 실패 로그
+                    return (false, 1001);
+                }
+                #endregion
+                
                 var data = await _db.Users
                     .Where(p => p.Deleted == false
                                 && p.Idx == request.Idx
@@ -314,7 +262,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 400);
+                    return (false, 1005);
                 }
 
                 var updateUserRequest = new List<UpdateUserRequest>();
@@ -379,6 +327,13 @@ namespace Infrastructure.Services
         {
             try
             {
+                if (idx < 0) 
+                {
+                    _logger.LogInformation("값이 정수가 아님");
+                    
+                    return (false, 1004);
+                }
+                
                 var data = await _db.Users
                     .Where(p => p.Deleted == false
                                 && p.Idx == idx
@@ -387,7 +342,7 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    return (false, 400);
+                    return (false, 1005);
                 }
 
                 data.Deleted = true;
@@ -402,7 +357,7 @@ namespace Infrastructure.Services
                            idx = idx
                        }))
                 {
-                    _logger.LogError(ex, "회원 수정 조회 중 오류 발생");
+                    _logger.LogError(ex, "디비 회원 삭제 중 오류 발생");
                 }
                 
                 return (false, 500);

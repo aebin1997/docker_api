@@ -8,8 +8,8 @@
 
     <!--뭐에 쓰이는건지 모르겠음-->
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="6.0.10" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0-rc.2.22472.11" />
+        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />
         <PackageReference Include="Serilog" Version="2.12.0" />
     </ItemGroup>
 </Project>
