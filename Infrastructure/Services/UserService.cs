@@ -7,6 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
+// TODO: [20221106-권용진] 8번
+// TODO: [20221106-권용진] LogContext.PushProperty를 통해 JsonData라는 Property를 로그에 넣는 부분은 Serilog의 기능이며, 현재 설정되어있지 않아 동작하지 않는 코드입니다.
+// TODO: [20221106-권용진] 이 부분은 제대로 이해하지 못한 상태로 사용한 부분으로 판단됩니다.
+
+// TODO: [20221106-권용진] 9번
+// TODO: [20221106-권용진] 서비스 메서드에서 반환되는 에러코드가 고유하지 않아 에러 발생시 추적이 어려워지는 상황이 발생하였습니다.
+// TODO: [20221106-권용진] 비즈니스 로직에서 반환되는 에러코드는 절대 중복이 되선 안됩니다.
+
 namespace Infrastructure.Services
 {
     public interface IUserService
@@ -47,15 +55,13 @@ namespace Infrastructure.Services
         {
             try
             {
-                // TODO: 필터에 대한 유효성 검사 로직 개발
                 if (request.Page < 0) 
                 {
                     _logger.LogInformation("값이 정수가 아님");
                     
                     return (false, 1004, null);
                 }
-
-                // TODO: 필터 로직 개발
+                
                 var query = _db.Users
                     .AsNoTracking()
                     .Where(p => p.Deleted == false && p.LifeBestScore >= request.StartLifeBestScore && p.LifeBestScore <= request.EndLifeBestScore);
@@ -106,6 +112,8 @@ namespace Infrastructure.Services
         {
             try
             {
+                // TODO: [20221106-권용진] 5번
+                // TODO: [20221106-권용진] idx가 0일때도 검색을 진행해야할까요 ?
                 if (idx < 0) 
                 {
                     _logger.LogInformation("값이 정수가 아님");
@@ -130,9 +138,13 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
+                    // TODO: [20221106-권용진] 6번
+                    // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
                     return (false, 1005, null);
                 }
-
+                
+                // TODO: [20221106-권용진] 7번
+                // TODO: [20221106-권용진] 별도의 변수를 선언하여 처리하신 이유가 무엇인가요 ? 
                 var localCreated = DateTimeConverter(data.Created);
                 var localUpdated = DateTimeConverter(data.Updated);
 
@@ -165,7 +177,6 @@ namespace Infrastructure.Services
         {
             try
             {
-                // TODO: 유효성 검사 로직 실행
                 #region UserId 유효성 검사
                 Regex regex = new Regex(@"^[\w_-]+$");
 
@@ -173,7 +184,6 @@ namespace Infrastructure.Services
                 {
                     _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
                     
-                    // TODO: User ID에 대한 유효성 검사 실패 로그
                     return (false, 1000);
                 }
                 #endregion
@@ -183,7 +193,6 @@ namespace Infrastructure.Services
                 {
                     _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
                     
-                    // TODO: User Password에 대한 유효성 검사 실패 로그
                     return (false, 1001);
                 }
                 #endregion
@@ -195,7 +204,9 @@ namespace Infrastructure.Services
                     UserPw = request.UserPw,
                     LifeBestScore = request.LifeBestScore,
                     Created = nowUnixTime, 
-                    Updated = nowUnixTime, // 없어도 되게 DB 구성했는데 왜 안되는지
+                    // TODO: [박예빈] 없어도 되게 DB 구성했는데 왜 안되는지
+                    // TODO: [20221106-권용진] DB Table을 Default값을 설정한 후 EF Core에서 별도로 설정해주지 않으면 DB Table에 설정된 Default값을 사용하지 않습니다. 
+                    Updated = nowUnixTime, 
                     Deleted = false,
                 };
 
@@ -220,6 +231,8 @@ namespace Infrastructure.Services
             }
         }
 
+        // TODO: [20221106-권용진] 13번
+        // TODO: [20221106-권용진] 서비스 메서드에서 받는 model naming 규칙을 지켜주셔야합니다.
         public async Task<(bool isSuccess, int errorCode)> UpdateUser(UpdateUserParameterModel request)
         {
             try
@@ -262,9 +275,13 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
+                    // TODO: [20221106-권용진] 12번
+                    // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
                     return (false, 1005);
                 }
 
+                // TODO: [20221106-권용진] 14번 
+                // TODO: [20221106-권용진] 아래와 같은 로직을 보고 어떤 이유에서 로직을 작성하였는지 짐작하신게 있는지 궁금합니다.
                 var updateUserRequest = new List<UpdateUserRequest>();
 
                 if (string.IsNullOrEmpty(request.UserId) == false)

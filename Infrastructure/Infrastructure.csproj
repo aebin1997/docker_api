@@ -4,8 +4,9 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
-    
-    <!-- / 하고 \ 차이 -->
+
+    <!-- TODO: [박예빈] / 하고 \ 차이 -->
+    <!-- TODO: [20221106-권용진] 차이는 없습니다. 둘 다 directory의 depth를 구분하는 구분자이며, OS특성으로 다르게 표기할 뿐입니다. -->
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>

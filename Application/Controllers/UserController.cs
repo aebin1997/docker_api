@@ -26,18 +26,19 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    // TODO: Http Request 모델 추가, 필터 기능 추가(paging 기능 추가(PageSize 조절 가능), LifeBestScore 검색 추가 (이상, 이하)
     public async Task<ActionResult> GetUsers([FromQuery] GetUsersHttpRequest model)
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
-        // TODO: Service에 넘길 때 Model을 파싱하여 전달해주세요.
         var result = await _user.GetUsers(model.ToGetUsersRequest());
 
         if (result.isSuccess == false)
         {
-            // TODO: 필터 데이터에 대한 유효성 검사로 인해 반환되는 에러는 400 Error로 반환
-            // TODO: try-catch로 반환되는 에러는 500 Error로 반환
+            // TODO: [20221106-권용진] 1번
+            // TODO: [20221106-권용진] 2022년 10월 27일에 적어둔 사항이 좀 애매한 부분이 있어 정정합니다.
+            // TODO: [20221106-권용진] 요청으로 들어온 데이터가 잘못된 형식일 경우에는 HTTP Status Code가 400으로 반환
+            // TODO: [20221106-권용진] 비즈니스 로직 오류 또는 의도치 않은 에러가 발생되면 HTTP Status Code가 500으로 반환
+            // TODO: [20221106-권용진] 회원 목록 조회 서비스에서 반환되는 에러코드가 아닌 다른 에러 코드가 넘어오면 로그를 남기고 HTTP Status Code가 500으로 반환
             var badRequestErrorCode = new int[] { 104 };
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -51,7 +52,6 @@ public class UserController : ControllerBase
             }
         }
         
-        // TODO: HttpRequest model 새로 생성하여 반환 처리하도록 수정해주세요.
         var responseModel = new UserListHttpResponse(result.response);
         
         return StatusCode(StatusCodes.Status200OK, responseModel);
@@ -64,6 +64,7 @@ public class UserController : ControllerBase
         
         if (result.isSuccess == false)
         { 
+            // TODO: [20221106-권용진] 1번과 동일하게 처리해주시기 바랍니다.
             var badRequestErrorCode = new int[] { 1004, 1005 };
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -96,10 +97,11 @@ public class UserController : ControllerBase
         if (result.isSuccess == false)
         {
             var badRequestErrorCode = new int[] { 1000, 1001 };
-            var serverErrorCode = new int[] { 500 }; // TODO: db 조회 실패를 500으로 두고 따로 표기해야하는지
+            // TODO: [박예빈] db 조회 실패를 500으로 두고 따로 표기해야하는지
+            // TODO: [20221106-권용진] 서비스 메서드에서 반환되는 에러코드는 고유한 코드입니다. DB 조회 실패를 특정해서 처리하는게 아닙니다.
+            // TODO: [20221106-권용진] 현재 작성된 코드에선 에러코드가 500으로 반환되어 배열에 500만 들어가 있지만 서버에 대한 오류로 인해 넘어오는 에러코드가 여러개일 경우 해당 배열에는 에러코드가 여러개가 들어가 있습니다.
+            var serverErrorCode = new int[] { 500 }; 
             
-            // TODO: 입력할 데이터에 대한 유효성 검사로 인해 반환되는 에러는 Http Status 400 Error로 반환
-            // TODO: try-catch로 반환되는 에러는 500 Error로 반환
             if (badRequestErrorCode.Contains(result.errorCode))
             {
                 return StatusCode(StatusCodes.Status400BadRequest);
@@ -126,6 +128,8 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{idx}")]
+    // TODO: [20221106-권용진] 11번
+    // TODO: [20221106-권용진] 업데이트의 경우 데이터를 Body가 아닌 Form으로 받으신 이유가 무엇인가요 ?
     public async Task<ActionResult> PutUser([FromRoute] int idx, [FromForm] UpdateUserHttpRequest model)
     {
         var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(idx));
@@ -156,6 +160,8 @@ public class UserController : ControllerBase
             }
         }
 
+        // TODO: [20221106-권용진] 15번
+        // TODO: [20221106-권용진] 회원 수정 완료 후 응답에 대한 회원 데이터를 별도로 조회하여 반환한 이유가 무엇인가요 ?
         var result2 = await _user.GetUserDetails(idx);
 
             if (result2.isSuccess == false)
