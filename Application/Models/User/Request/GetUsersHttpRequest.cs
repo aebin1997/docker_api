@@ -18,9 +18,9 @@ public class GetUsersHttpRequest
     [Range(0, 150)] 
     public int EndLifeBestScore { get; set; }
 
-    public GetUsers ToGetUsersRequest()
+    public GetUsersRequest ToGetUsersRequest()
     {
-        return new GetUsers()
+        return new GetUsersRequest()
         {
             Page = Page,
             PageSize = PageSize,
