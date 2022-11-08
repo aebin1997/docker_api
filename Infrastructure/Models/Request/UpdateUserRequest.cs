@@ -11,7 +11,7 @@ namespace Infrastructure.Models.Request
         public string DataAfter { get; set; }
     }
 
-    public class UpdateUserParameterModel
+    public class UpdateUserParameterRequest
     {
         public int Idx { get; set; }
         public string UserId { get; set; } = "";
