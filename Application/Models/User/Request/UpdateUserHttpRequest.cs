@@ -12,9 +12,9 @@ public class UpdateUserHttpRequest
     [Range(0, 150)] 
     public int? LifeBestScore { get; set; }
 
-    public UpdateUserParameterModel ToUpdateUserHttpRequest(int idx)
+    public UpdateUserParameterRequest ToUpdateUserHttpRequest(int idx)
     {
-        return new UpdateUserParameterModel()
+        return new UpdateUserParameterRequest()
         {
             Idx = idx,
             UserId = UserId,
