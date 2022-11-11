@@ -5,6 +5,7 @@ using Application.Models.User.Request;
 using Newtonsoft.Json.Linq;
 using Serilog.Context;
 using Application.Models.User.Response;
+using Newtonsoft.Json;
 
 namespace Application.Controllers;
 
@@ -28,6 +29,13 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetUsers([FromQuery] GetUsersHttpRequest model)
     {
+        using (LogContext.PushProperty("LogProperty", new 
+               {
+                   model = JsonConvert.SerializeObject(model)
+               }))
+        {
+            _logger.LogInformation("로그 테스트");
+        }                    
         model.Page = model.Page == 0 ? 1 : model.Page;
         
         var result = await _user.GetUsers(model.ToGetUsersRequest());
@@ -84,7 +92,7 @@ public class UserController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("JsonData", new
+                // using (LogContext.PushProperty("LogProperty", new
                 //        {
                 //            idx = JObject.FromObject(idx)
                 //        }))
@@ -125,7 +133,7 @@ public class UserController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("JsonData", new
+                // using (LogContext.PushProperty("LogProperty", new
                 //        {
                 //            model = JObject.FromObject(model)
                 //        }))
@@ -163,7 +171,7 @@ public class UserController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("JsonData", new
+                // using (LogContext.PushProperty("LogProperty", new
                 //        {
                 //            idx = JObject.FromObject(idx)
                 //        }))
@@ -209,7 +217,7 @@ public class UserController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("JsonData", new
+                // using (LogContext.PushProperty("LogProperty", new
                 //        {
                 //            idx = JObject.FromObject(idx)
                 //        }))

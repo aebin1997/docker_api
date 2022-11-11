@@ -5,6 +5,7 @@ using Infrastructure.Context;
 using Infrastructure.Models.Request;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Serilog.Context;
 
 // TODO: [20221106-권용진] 8번 (property 삭제 완료)
@@ -57,7 +58,13 @@ namespace Infrastructure.Services
             {
                 if (request.Page <= 0) 
                 {
-                    _logger.LogInformation("회원 목록조회: 페이지 값이 정수가 아님");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               request = JObject.FromObject(request)
+                           }))
+                    {
+                        _logger.LogInformation("회원 목록조회: 페이지 값이 정수가 아님");
+                    }
                     
                     return (false, 1000, null);
                 }
@@ -95,16 +102,13 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // using (LogContext.PushProperty("JsonData", new 
-                //        {
-                //            page = request.Page,
-                //            pageSize = request.PageSize
-                //        }))
-                // {
-                //     _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
-                // }
-                
-                _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogError(ex, "회원 목록 조회 중 오류 발생");
+                }
                 
                 return (false, 1001, null);
             }
@@ -118,7 +122,13 @@ namespace Infrastructure.Services
                 // TODO: [20221106-권용진] idx가 0일때도 검색을 진행해야할까요 ?
                 if (idx <= 0) 
                 {
-                    _logger.LogInformation("회원 상세 조회: 값이 정수가 아님");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               idx = idx
+                           }))
+                    {
+                        _logger.LogInformation("회원 상세 조회: 값이 정수가 아님");
+                    }
                     
                     return (false, 1002, null);
                 }
@@ -142,9 +152,14 @@ namespace Infrastructure.Services
                 {
                     // TODO: [20221106-권용진] 6번 (수정 완료)
                     // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
-                    
-                    _logger.LogError("회원 상세조회: 데이터 불러오기 실패");
-                    
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               idx = idx
+                           }))
+                    {
+                        _logger.LogError("회원 상세조회: 데이터 불러오기 실패");
+                    }                    
+
                     return (false, 1003, null);
                 }
                 
@@ -164,7 +179,7 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                using (LogContext.PushProperty("JsonData", new 
+                using (LogContext.PushProperty("LogProperty", new 
                        {
                            idx = idx
                        }))
@@ -185,8 +200,14 @@ namespace Infrastructure.Services
 
                 if (regex.IsMatch(request.UserId) == false)
                 {
-                    _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
-                    
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               userId = request.UserId
+                           }))
+                    {
+                        _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
+                    }
+
                     return (false, 1005);
                 }
                 #endregion
@@ -194,7 +215,13 @@ namespace Infrastructure.Services
                 #region UserPw 유효성 검사
                 if (request.UserPw.Length != 4)
                 {
-                    _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               userPw = request.UserPw
+                           }))
+                    {
+                        _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    }
                     
                     return (false, 1006);
                 }
@@ -220,17 +247,13 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // using (LogContext.PushProperty("JsonData", new 
-                //        {
-                //            userId = request.UserId,
-                //            userPw = request.UserPw,
-                //            lifeBestScore = request.LifeBestScore
-                //        }))
-                // {
-                //     _logger.LogError(ex, "회원 추가 중 오류 발생");
-                // }
-                
-                _logger.LogError(ex, "회원 추가 중 오류 발생");
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogError(ex, "회원 추가 중 오류 발생");
+                }
                 
                 return (false, 1007);
             }
@@ -244,7 +267,13 @@ namespace Infrastructure.Services
             {
                 if (request.Idx <= 0) 
                 {
-                    _logger.LogInformation("회원 정보 수정: 값이 정수가 아님");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               idx = request.Idx
+                           }))
+                    {
+                        _logger.LogInformation("회원 정보 수정: 값이 정수가 아님");
+                    }
                     
                     return (false, 1008);
                 }
@@ -255,7 +284,13 @@ namespace Infrastructure.Services
 
                 if (regex.IsMatch(request.UserId) == false)
                 {
-                    _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               userId = request.UserId
+                           }))
+                    {
+                        _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
+                    }
                     
                     // TODO: User ID에 대한 유효성 검사 실패 로그
                     return (false, 1010);
@@ -265,7 +300,13 @@ namespace Infrastructure.Services
                 #region UserPw 유효성 검사
                 if (request.UserPw.Length != 4)
                 {
-                    _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               request = JObject.FromObject(request)
+                           }))
+                    {
+                        _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
+                    }
                     
                     // TODO: User Password에 대한 유효성 검사 실패 로그
                     return (false, 1011);
@@ -282,8 +323,13 @@ namespace Infrastructure.Services
                 {
                     // TODO: [20221106-권용진] 12번 (수정 완료)
                     // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
-                    
-                    _logger.LogError("회원 수정을 위한 회원 조회 실패");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               request = JObject.FromObject(request)
+                           }))
+                    {
+                        _logger.LogError("회원 수정을 위한 회원 조회 실패");
+                    }
                     
                     return (false, 1009);
                 }
@@ -329,22 +375,18 @@ namespace Infrastructure.Services
                 {
                     await _db.SaveChangesAsync();
                 }
+                
                 return (true, 0);
             }
             catch (Exception ex)
             {
-                // using (LogContext.PushProperty("JsonData", new 
-                //        {
-                //            idx = request.Idx,
-                //            userId = request.UserId,
-                //            userPw = request.UserPw,
-                //            lifeBestScore = request.LifeBestScore
-                //        }))
-                // {
-                //     _logger.LogError(ex, "회원 수정 중 오류 발생");
-                // }
-                
-                _logger.LogError(ex, "회원 수정 중 오류 발생");
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogError(ex, "회원 수정 중 오류 발생");
+                }
                 
                 return (false, 1012);
             }
@@ -356,7 +398,13 @@ namespace Infrastructure.Services
             {
                 if (idx <= 0) 
                 {
-                    _logger.LogInformation("회원 삭제: 값이 정수가 아님");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               idx = idx
+                           }))
+                    {
+                        _logger.LogInformation("회원 삭제: 값이 정수가 아님");
+                    }
                     
                     return (false, 1013);
                 }
@@ -369,7 +417,13 @@ namespace Infrastructure.Services
 
                 if (data == null)
                 {
-                    _logger.LogInformation("회원 삭제: 삭제할 대상이 없음");
+                    using (LogContext.PushProperty("LogProperty", new 
+                           {
+                               idx = idx
+                           }))
+                    {
+                        _logger.LogInformation("회원 삭제: 삭제할 대상이 없음");
+                    }
                     
                     return (false, 1014);
                 }
@@ -381,15 +435,13 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // using (LogContext.PushProperty("JsonData", new 
-                //        {
-                //            idx = idx
-                //        }))
-                // {
-                //     _logger.LogError(ex, "디비 회원 삭제 중 오류 발생");
-                // }
-                
-                _logger.LogError(ex, "디비 회원 삭제 중 오류 발생");
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           idx = idx
+                       }))
+                {
+                    _logger.LogError(ex, "디비 회원 삭제 중 오류 발생");
+                }
                 
                 return (false, 1015);
             }

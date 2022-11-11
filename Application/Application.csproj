@@ -4,10 +4,15 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <AssemblyVersion>1.1.0.0</AssemblyVersion>
+        <Company>aebin</Company>
+        <Product>docker_api</Product>
     </PropertyGroup>
     
     <ItemGroup>
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+        <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     </ItemGroup>
 
@@ -50,7 +55,6 @@
                 <None Update="appsettings.Production.json">
                     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
                 </None>
-                <Content Remove="appsettings.Local.json" />
                 <Content Remove="appsettings.Development.json" />
             </ItemGroup>
         </When>
