@@ -181,14 +181,14 @@ public class UserController : ControllerBase
         // TODO: [20221106-권용진] 회원 수정 완료 후 응답에 대한 회원 데이터를 별도로 조회하여 반환한 이유가 무엇인가요 ? - 그냥 제가 수정 잘됐는지 확인하려고 했습니다.
         var result2 = await _user.GetUserDetails(idx);
 
-            if (result2.isSuccess == false)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            var responseModel = new UserDetailsHttpResponse(result2.details);
-            return StatusCode(StatusCodes.Status200OK, responseModel);
+        if (result2.isSuccess == false)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
+
+        var responseModel = new UserDetailsHttpResponse(result2.details);
+        return StatusCode(StatusCodes.Status200OK, responseModel);
+    }
 
     [HttpDelete("{idx}")]
     public async Task<ActionResult> DeleteUser([FromRoute] int idx)
