@@ -37,8 +37,6 @@
                     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
                 </None>
                 <Content Remove="appsettings.QA.json" />
-                <Content Remove="appsettings.Staging.json" />
-                <Content Remove="appsettings.Production.json" />
             </ItemGroup>
         </When>
         <When Condition="'$(Configuration)' == 'Release'">
@@ -56,6 +54,7 @@
                     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
                 </None>
                 <Content Remove="appsettings.Development.json" />
+                <Content Remove="appsettings.Local.json" />
             </ItemGroup>
         </When>
     </Choose>
