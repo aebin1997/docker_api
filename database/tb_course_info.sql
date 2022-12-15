@@ -1,4 +1,6 @@
-create table tb_course_info
+
+DROP TABLE IF EXISTS `ParkAebinDB`.`tb_course_info`;
+create table `ParkAebinDB`.tb_course_info
 (
     id          int unsigned auto_increment
         primary key,

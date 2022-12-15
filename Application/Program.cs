@@ -10,13 +10,20 @@ var configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Services
+// Services DI
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ITestService, TestService>();
 builder.Services.AddTransient<ICourseService, CourseService>();
 builder.Services.AddTransient<IStatisticsService, StatisticsService>();
 
 // Mysql Connection
+
+// appsettings 파일 수정 사항
+// TODO: [20221215-코드리뷰-1번] testDB라는 명칭으로 설정했던 DB 이름을 ParkAebinDB로 변경 (MySQL에서도 새로 생성하시기 바랍니다.)
+
+// TODO: [20221215-코드리뷰-2번] ParkAebinDB의 사용자를 새로 생성하여 연결하도록 수정 (root 계정을 사용하는게 아닌 새로운 사용자로 연결을 시도해야합니다.) -> database 폴더에 SQL파일 생성해주세요.
+// - ParkAebinDB의 모든 권한을 부여해야합니다.  
+
 string mySqlConnectionStr = configuration.GetConnectionString("DefaultConnection");  
 builder.Services.AddDbContext<SystemDBContext>(options =>
     options.UseMySql(mySqlConnectionStr, ServerVersion.AutoDetect(mySqlConnectionStr))

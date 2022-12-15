@@ -7,7 +7,8 @@
 #     deleted bool default 0
 #     );
 
-create table tb_user
+DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user`;
+create table `ParkAebinDB`.tb_user
 (
     id       int unsigned auto_increment
         primary key,

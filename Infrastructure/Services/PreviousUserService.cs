@@ -7,14 +7,6 @@
 // using Newtonsoft.Json.Linq;
 // using Serilog.Context;
 //
-// // TODO: [20221106-권용진] 8번 (property 삭제 완료)
-// // TODO: [20221106-권용진] LogContext.PushProperty를 통해 JsonData라는 Property를 로그에 넣는 부분은 Serilog의 기능이며, 현재 설정되어있지 않아 동작하지 않는 코드입니다.
-// // TODO: [20221106-권용진] 이 부분은 제대로 이해하지 못한 상태로 사용한 부분으로 판단됩니다.
-//
-// // TODO: [20221106-권용진] 9번 (해결 완료)
-// // TODO: [20221106-권용진] 서비스 메서드에서 반환되는 에러코드가 고유하지 않아 에러 발생시 추적이 어려워지는 상황이 발생하였습니다.
-// // TODO: [20221106-권용진] 비즈니스 로직에서 반환되는 에러코드는 절대 중복이 되선 안됩니다.
-//
 // namespace Infrastructure.Services;
 //
 // public interface IUserService
@@ -152,8 +144,6 @@
 //
 //             if (data == null)
 //             {
-//                 // TODO: [20221106-권용진] 6번 (수정 완료)
-//                 // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
 //                 using (LogContext.PushProperty("LogProperty", new 
 //                        {
 //                            userId = id
@@ -165,9 +155,6 @@
 //                 return (false, 1003, null);
 //             }
 //                 
-//             // TODO: [20221106-권용진] 7번 (수정 완료)
-//             // TODO: [20221106-권용진] 별도의 변수를 선언하여 처리하신 이유가 무엇인가요 ? - 그냥 이유는 없었어요..!
-//
 //             var nowUnixTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); 
 //             
 //             var details = new UserDetailsResponse();
@@ -279,7 +266,6 @@
 //                 return (false, 1008);
 //             }
 //                 
-//             // TODO: 유효성 검사 로직 실행
 //             #region UserId 유효성 검사
 //             Regex regex = new Regex(@"^[\w_-]+$");
 //
@@ -293,7 +279,6 @@
 //                     _logger.LogInformation("회원 ID 유효성 검사 실패로 회원 등록 중지");
 //                 }
 //                     
-//                 // TODO: User ID에 대한 유효성 검사 실패 로그
 //                 return (false, 1010);
 //             }
 //             #endregion
@@ -309,7 +294,6 @@
 //                     _logger.LogInformation("회원 Password 유효성 검사 실패로 회원 등록 중지");
 //                 }
 //                     
-//                 // TODO: User Password에 대한 유효성 검사 실패 로그
 //                 return (false, 1011);
 //             }
 //             #endregion
@@ -322,8 +306,6 @@
 //
 //             if (data == null)
 //             {
-//                 // TODO: [20221106-권용진] 12번 (수정 완료)
-//                 // TODO: [20221106-권용진] 에러 코드를 반한할 때는 로그를 무조건 추가해주셔야합니다.
 //                 using (LogContext.PushProperty("LogProperty", new 
 //                        {
 //                            request = JObject.FromObject(request)
@@ -335,8 +317,6 @@
 //                 return (false, 1009);
 //             }
 //
-//             // TODO: [20221106-권용진] 14번 (답변 완료)
-//             // TODO: [20221106-권용진] 아래와 같은 로직을 보고 어떤 이유에서 로직을 작성하였는지 짐작하신게 있는지 궁금합니다. - nullable
 //             var updateUserRequest = new List<UpdateUserRequest>();
 //
 //             if (string.IsNullOrEmpty(request.Username) == false)

@@ -32,6 +32,10 @@ public class TestService : ITestService
         _db = db;
     }
     
+    // TODO: [20221215-코드리뷰-3번] DI로 수명 주기는 설정하는 class의 경우 static 처리를 해서는 안됩니다. 메소드에 static을 모두 제거해주세요.
+    
+    
+    // TODO: [20221215-코드리뷰-4번] 랜덤 변수를 멤버 변수가 아닌 지역 변수로 처리하도록 수정해주세요.
     private static Random random = new Random();
     
     /// <summary>
@@ -146,56 +150,45 @@ public class TestService : ITestService
     {
         try
         {
-            var datetime = new DateTime(); // 2018-01-01 00:00:00
-            var datetimeOffset = new DateTimeOffset(); // 2018-01-01 00:00:00 +09:00
+            var idCount = await _db.Users
+                .AsNoTracking()
+                .Where(p => p.Deleted == false)
+                .CountAsync();
             
-            // 2018~2022 사이의 시간
-
+            for (var i = 1; i <= idCount ; i++) // 회원에 대한 반복문
+            {
+                var minScore = RandomInteger(60, 90);
+                var scoreRange = RandomInteger(20, 40); 
+                var maxScore = RandomInteger((minScore + scoreRange), 145);
             
+                var minLongest = GetSecureDoubleWithinRange(160.00, 180.00);
+                var longestRange = GetSecureDoubleWithinRange(30, 70);
+                var maxLongest = GetSecureDoubleWithinRange((minLongest + longestRange), 300.00);
                 
+                // _logger.LogWarning($"User Id: {i}");
+                // _logger.LogWarning($"Score Range: {minScore} ~ {maxScore}");
+                // _logger.LogWarning($"Longest Range: {minLongest} ~ {maxLongest}");
+                
+                for (var j = 0; j < 1000; j++) // 1000개의 스코어 데이터 생성 반복문
+                {
+                    var randomDate = RandomDay();
             
-            var now = DateTime.UtcNow.ToString();
-            // var dateTimeMin = DateTimeToUnixTime();
-            // var dateTimeMax = DateTimeToUnixTime(20181212);
-            // var idCount = await _db.Users
-            //     .AsNoTracking()
-            //     .Where(p => p.Deleted == false)
-            //     .CountAsync();
-            //
-            // for (var i = 1; i <= idCount ; i++) // 회원에 대한 반복문
-            // {
-            //     var minScore = RandomInteger(60, 90);
-            //     var scoreRange = RandomInteger(20, 40); 
-            //     var maxScore = RandomInteger((minScore + scoreRange), 145);
-            //
-            //     var minLongest = GetSecureDoubleWithinRange(160.00, 180.00);
-            //     var longestRange = GetSecureDoubleWithinRange(30, 70);
-            //     var maxLongest = GetSecureDoubleWithinRange((minLongest + longestRange), 300.00);
-            //     
-            //     // _logger.LogWarning($"User Id: {i}");
-            //     // _logger.LogWarning($"Score Range: {minScore} ~ {maxScore}");
-            //     // _logger.LogWarning($"Longest Range: {minLongest} ~ {maxLongest}");
-            //     
-            //     for (var j = 0; j < 1000; j++) // 1000개의 스코어 데이터 생성 반복문
-            //     {
-            //         var randomDate = RandomDay();
-            //
-            //         var nowUnixTime = (ulong) new DateTimeOffset(randomDate).ToUnixTimeMilliseconds();
-            //
-            //         var course = new UserByCourseModel()
-            //         {
-            //             UserId = i,
-            //             CourseId = RandomInteger(1, 51),
-            //             Score = RandomInteger(minScore, maxScore),
-            //             Longest = (decimal) GetSecureDoubleWithinRange(minLongest, maxLongest),
-            //             Updated = nowUnixTime,
-            //         };
-            //     
-            //         await _db.UsersByCourse.AddAsync(course);
-            //     }
-            // }
-            //
-            // await _db.SaveChangesAsync();
+                    var nowUnixTime = (ulong) new DateTimeOffset(randomDate).ToUnixTimeMilliseconds();
+            
+                    var course = new UserByCourseModel()
+                    {
+                        UserId = i,
+                        CourseId = RandomInteger(1, 51),
+                        Score = RandomInteger(minScore, maxScore),
+                        Longest = (decimal) GetSecureDoubleWithinRange(minLongest, maxLongest),
+                        Updated = nowUnixTime,
+                    };
+                
+                    await _db.UsersByCourse.AddAsync(course);
+                }
+            }
+            
+            await _db.SaveChangesAsync();
 
             return (true, 0);
         }
@@ -224,12 +217,12 @@ public class TestService : ITestService
                     var randomDate = RandomDay();
 
                     var nowUnixTime = (ulong) new DateTimeOffset(randomDate).ToUnixTimeMilliseconds();
-            
+
                     var club = new UserByClubModel()
                     {
                         UserId = i,
                         Club = t,
-                        Distance = (decimal) GetSecureDoubleWithinRange(160.00, 300.00),
+                        Distance = (decimal) GetSecureDoubleWithinRange(160.00, 300.00), // TODO: [20221215-코드리뷰-5번] 클럽별로 거리를 다르게 입력하도록 수정
                         Updated = nowUnixTime
                     };
                 
@@ -271,9 +264,9 @@ public class TestService : ITestService
                 {
                     UserId = data.UserId,
                     Score = data.Score,
-                    ScoreUpdated = nowUnixTime,
+                    ScoreUpdated = nowUnixTime,// TODO: [20221215-코드리뷰-6번] 스코어를 기록한 시간으로 입력이 되어야합니다.
                     Longest = data.Longest,
-                    LongestUpdated = nowUnixTime
+                    LongestUpdated = nowUnixTime// TODO: [20221215-코드리뷰-7번] 롱기스트를 기록한 시간으로 입력이 되어야합니다.
                 }; 
                 
                 await _db.UsersBestRecord.AddAsync(bestRecord);

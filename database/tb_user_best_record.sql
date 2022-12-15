@@ -1,4 +1,6 @@
-create table tb_user_best_record
+
+DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user_best_record`;
+create table `ParkAebinDB`.tb_user_best_record
 (
     user_id         int unsigned     not null
         primary key,

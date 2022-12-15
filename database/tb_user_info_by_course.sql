@@ -1,4 +1,6 @@
-create table tb_user_info_by_course
+
+DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user_info_by_course`;
+create table `ParkAebinDB`.tb_user_info_by_course
 (
     id        int unsigned auto_increment
         primary key,
@@ -10,4 +12,4 @@ create table tb_user_info_by_course
 );
 
 create index course_id
-    on tb_user_info_by_course (course_id);
+    on `ParkAebinDB`.tb_user_info_by_course (course_id);

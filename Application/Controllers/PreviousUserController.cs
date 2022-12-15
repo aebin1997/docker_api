@@ -100,9 +100,6 @@
 //         if (result.isSuccess == false)
 //         {
 //             var badRequestErrorCode = new int[] { 1005, 1006 };
-//             // TODO: [박예빈] db 조회 실패를 500으로 두고 따로 표기해야하는지 (해결)
-//             // TODO: [20221106-권용진] 서비스 메서드에서 반환되는 에러코드는 고유한 코드입니다. DB 조회 실패를 특정해서 처리하는게 아닙니다.
-//             // TODO: [20221106-권용진] 현재 작성된 코드에선 에러코드가 500으로 반환되어 배열에 500만 들어가 있지만 서버에 대한 오류로 인해 넘어오는 에러코드가 여러개일 경우 해당 배열에는 에러코드가 여러개가 들어가 있습니다.
 //             var serverErrorCode = new int[] { 1007 }; 
 //             
 //             if (badRequestErrorCode.Contains(result.errorCode))
@@ -133,7 +130,6 @@
 //     }
 //
 //     [HttpPut("{id}")]
-//     // TODO: [20221106-권용진] 11번 (답변 완료)
 //     public async Task<ActionResult> PutUser([FromRoute] int id, [FromBody] UpdateUserHttpRequest model)
 //     {
 //         var result = await _user.UpdateUser(model.ToUpdateUserHttpRequest(id));
@@ -166,8 +162,6 @@
 //             }
 //         }
 //
-//         // TODO: [20221106-권용진] 15번 (답변 완료)
-//         // TODO: [20221106-권용진] 회원 수정 완료 후 응답에 대한 회원 데이터를 별도로 조회하여 반환한 이유가 무엇인가요 ? - 그냥 제가 수정 잘됐는지 확인하려고 했습니다.
 //         var result2 = await _user.GetUserDetails(id);
 //
 //         if (result2.isSuccess == false)
