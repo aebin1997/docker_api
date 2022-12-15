@@ -8,11 +8,16 @@ namespace Infrastructure.Context
     // TODO: [20221106-권용진] DB와 관련된 많은 기능들이 포함되어 있는 클래스입니다. connection 연결부터 해제, 데이터 조회 및 처리를 위한 요청 등 무수히 많은 기능들이 포함되어 있어서 우리가 연결하려는 DBContext를 선언한 후 해당 클래스를 상속받으면 간편하게 DB와 통신할 수 있게됩니다.
     public class SystemDBContext : DbContext 
     {
-        /// <summary>
-        /// 유저 테이블
-        /// </summary>
         public DbSet<UserModel> Users { get; set; } 
-
+        
+        public DbSet<CourseModel> Courses { get; set; }
+        
+        public DbSet<UserByCourseModel> UsersByCourse { get; set; }
+        
+        public DbSet<UserByClubModel> UsersByClub { get; set; }
+        
+        public DbSet<UserBestRecordModel> UsersBestRecord { get; set; }
+        
         public SystemDBContext(DbContextOptions<SystemDBContext> options) : base(options)
         {
         }
@@ -26,17 +31,51 @@ namespace Infrastructure.Context
             {
                 // primary key
                 builder
-                    .HasKey(p => p.Idx);
+                    .HasKey(p => p.UserId);
 
-                builder
-                    .Property(p => p.Updated)
-                    .ValueGeneratedOnUpdate()
-                    .ValueGeneratedOnAdd();
-                    
                 // let DB create values
                 builder
-                    .Property(p => p.Idx)
+                    .Property(p => p.UserId)
                     .ValueGeneratedOnAdd();
+            });
+            
+            modelBuilder.Entity<CourseModel>(builder =>
+            {
+                // primary key
+                builder
+                    .HasKey(p => p.CourseId);
+
+                // let DB create values
+                builder
+                    .Property(p => p.CourseId)
+                    .ValueGeneratedOnAdd();
+            });
+            
+            modelBuilder.Entity<UserByCourseModel>(builder =>
+            {
+                // primary key
+                builder
+                    .HasKey(p => p.UserByCourseId);
+                
+                // let DB create values
+                builder
+                    .Property(p => p.UserByCourseId)
+                    .ValueGeneratedOnAdd();
+            });
+            
+            modelBuilder.Entity<UserByClubModel>(builder =>
+            {
+                // primary key
+                builder
+                    .HasKey(p => new { p.UserId, p.Club });
+            });
+            
+            modelBuilder.Entity<UserBestRecordModel>(builder =>
+            {
+                // primary key
+                builder
+                    // .HasNoKey();
+                .HasKey(p => p.UserId);
             });
         }
     }
