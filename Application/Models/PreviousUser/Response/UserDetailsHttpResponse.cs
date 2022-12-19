@@ -10,6 +10,8 @@ public class UserDetailsHttpResponse
 
     public string Password { get; set; } 
     
+    public string Name { get; set; }
+    
     public ulong Created { get; set; }
         
     public ulong Updated { get; set; }
@@ -21,6 +23,7 @@ public class UserDetailsHttpResponse
         UserId = response.UserId;
         Username = response.Username;
         Password = response.Password;
+        Name = response.Name;
         Created = response.Created;
         Updated = response.Updated;
         Deleted = response.Deleted;

@@ -134,31 +134,31 @@ public class TestController : ControllerBase
         return StatusCode(StatusCodes.Status201Created);
     }
     
-    [Route("bestRecord")]
-    [HttpPost]
-    public async Task<ActionResult> AddBestRecord()
-    {
-        var result = await _test.AddBestRecord();
-
-        if (result.isSuccess == false)
-        {
-            var badRequestErrorCode = new int[] { };
-            var serverErrorCode = new int[] { }; 
-            
-            if (badRequestErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-            else if (serverErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        return StatusCode(StatusCodes.Status201Created);
-    }
+    // [Route("bestRecord")]
+    // [HttpPost]
+    // public async Task<ActionResult> AddBestRecord()
+    // {
+    //     var result = await _test.AddBestRecord();
+    //
+    //     if (result.isSuccess == false)
+    //     {
+    //         var badRequestErrorCode = new int[] { };
+    //         var serverErrorCode = new int[] { }; 
+    //         
+    //         if (badRequestErrorCode.Contains(result.errorCode))
+    //         {
+    //             return StatusCode(StatusCodes.Status400BadRequest);
+    //         }
+    //         else if (serverErrorCode.Contains(result.errorCode))
+    //         {
+    //             return StatusCode(StatusCodes.Status500InternalServerError);
+    //         }
+    //         else
+    //         {
+    //             return StatusCode(StatusCodes.Status500InternalServerError);
+    //         }
+    //     }
+    //
+    //     return StatusCode(StatusCodes.Status201Created);
+    // }
 }

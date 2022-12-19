@@ -22,7 +22,7 @@ public class StatisticsController : ControllerBase
         _statistics = statistics;
     }
     
-    [Route("course/user/score/range")]
+    [Route("course/user/score/range/{userId}")]
     [HttpGet]
     public async Task<ActionResult> GetUserScoreRangeByCourse([FromRoute] int userId)
     {
@@ -54,7 +54,7 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/user/longest/range")]
+    [Route("course/user/longest/range/{userId}")]
     [HttpGet]
     public async Task<ActionResult> GetLongestListByCourse([FromRoute] int userId)
     {
@@ -86,11 +86,11 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count")]
+    [Route("course/rounding/count/{courseId}")]
     [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCount([FromRoute] int userId)
+    public async Task<ActionResult> GetCourseRoundingCount([FromRoute] int courseId)
     {
-        var result = await _statistics.GetCourseRoundingCount(userId);
+        var result = await _statistics.GetCourseRoundingCount(courseId);
         
         if (result.isSuccess == false)
         { 
@@ -118,11 +118,11 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count/year")]
+    [Route("course/rounding/count/year/{courseId}")]
     [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCountByYear([FromRoute] int userId)
+    public async Task<ActionResult> GetCourseRoundingCountByYear([FromRoute] int courseId)
     {
-        var result = await _statistics.GetCourseRoundingCountByYear(userId);
+        var result = await _statistics.GetCourseRoundingCountByYear(courseId);
         
         if (result.isSuccess == false)
         { 
@@ -149,11 +149,11 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count/month")]
+    [Route("course/rounding/count/month/{courseId}")]
     [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCountByMonth([FromRoute] int userId)
+    public async Task<ActionResult> GetCourseRoundingCountByMonth([FromRoute] int courseId)
     {
-        var result = await _statistics.GetCourseRoundingCountByMonth(userId);
+        var result = await _statistics.GetCourseRoundingCountByMonth(courseId);
         
         if (result.isSuccess == false)
         { 

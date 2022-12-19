@@ -74,7 +74,7 @@ public class StatisticsService : IStatisticsService
             var data = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.UserId)
-                .Where(p => p.Key == 1)
+                .Where(p => p.Key == userId)
                 .Select(p => new
                 {
                     a = _testDB.UsersByCourse.Count(p => p.Score >= 60 && p.Score < 70),
@@ -139,7 +139,7 @@ public class StatisticsService : IStatisticsService
             var data = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.UserId)
-                .Where(p => p.Key == 1)
+                .Where(p => p.Key == userId)
                 .Select(p => new
                 {
                     a = _testDB.UsersByCourse.Count(p => p.Longest >= 160 && p.Longest < 100),
@@ -184,7 +184,7 @@ public class StatisticsService : IStatisticsService
             var data = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.CourseId)
-                .Where(p => p.Key == 1)
+                .Where(p => p.Key == courseId)
                 .Select(p => new
                 {
                     CourseId = p.Key,
@@ -245,7 +245,7 @@ public class StatisticsService : IStatisticsService
 
             var dataList = _testDB.UsersByCourse
                 .AsNoTracking()
-                .Where(p => p.CourseId == 1)
+                .Where(p => p.CourseId == courseId)
                 .Select(p => new DateTimeResponse
                 {
                     UserId = p.UserId,
@@ -299,7 +299,7 @@ public class StatisticsService : IStatisticsService
         {
             var dataList = _testDB.UsersByCourse
                 .AsNoTracking()
-                .Where(p => p.CourseId == 1)
+                .Where(p => p.CourseId == courseId)
                 .Select(p => new DateTimeResponse
                 {
                     UserId = p.UserId,
