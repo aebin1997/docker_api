@@ -32,6 +32,8 @@ public class UserService : IUserService
         _testDB = testDB;
     }
     
+    // TODO: [20221219-코드리뷰-16번] 기존에 개발하신 회원 관련 로직도 다시 추가해주세요. (가입, 수정, 삭제 등)
+    
     public async Task<(bool isSuccess, int errorCode, GetUserBestRecordListResponse response)> GetUserBestRecordList()
     {
         try
@@ -45,12 +47,16 @@ public class UserService : IUserService
             //         Score = best.Score,
             //         Longest = best.Longest
             //     }).ToListAsync();
-
+            
+            
+            // TODO: [20221219-코드리뷰-18번] 노션에 작성되어있는 필터 조건 추가해주세요.
+            
+            // TODO: [20221219-코드리뷰-17번] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다.
             var dataList = await _testDB.Users.Join(
                 _testDB.UsersBestRecord,
                 user => user.UserId,
                 best => best.UserId,
-                (user, best) => new
+                (user, best) => new UserBestRecordListItem
                 {
                     Name = user.Name,
                     Score = best.Score,
@@ -58,18 +64,13 @@ public class UserService : IUserService
                 }).ToListAsync();
 
             var response = new GetUserBestRecordListResponse();
-            response.List = (from data in dataList
-                select new UserBestRecordListItem
-                {
-                    Name = data.Name,
-                    Score = data.Score,
-                    Longest = data.Longest
-                }).ToList();
+            response.List = dataList;
 
             return (true, 0, response);
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-19번] 로그 메시지 수정해주세요.
             using (LogContext.PushProperty("JsonData", new
                    {
                        
@@ -86,6 +87,7 @@ public class UserService : IUserService
     {
         try
         {
+            // TODO: [20221219-코드리뷰-20번] 붎필요한 로직을 제거해주세요.
             var dataList = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.UserId)
@@ -124,6 +126,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-21번] 로그 메시지 수정해주세요.
             using (LogContext.PushProperty("JsonData", new
                    {
                        
@@ -140,6 +143,7 @@ public class UserService : IUserService
     {
         try
         {
+            // TODO: [20221219-코드리뷰-23번] 붎필요한 로직을 제거해주세요.
             var dataList = await _testDB.UsersByClub
                 .AsNoTracking()
                 .GroupBy(p => p.UserId)
@@ -171,6 +175,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-22번] 로그 메시지 수정해주세요.
             using (LogContext.PushProperty("JsonData", new
                    {
                        

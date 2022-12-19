@@ -94,6 +94,8 @@ public class TestService : ITestService
         }
         catch 
         {
+            // TODO: [20221219-코드리뷰-10번] 로그 메시지 추가
+            
             return (false, 100);
         }
     }
@@ -118,6 +120,8 @@ public class TestService : ITestService
         }
         catch
         {
+            // TODO: [20221219-코드리뷰-11번] 로그 메시지 추가
+            
             return (false, 101);
         }
     }
@@ -168,7 +172,7 @@ public class TestService : ITestService
                         Updated = nowUnixTime,
                     };
 
-                    if (bestScore < data.Score)
+                    if (bestScore > data.Score || bestScore == 0)
                     {
                         bestScore = data.Score;
                         bestScoreTime = data.Updated;
@@ -203,6 +207,8 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-12번] 로그 메시지 추가
+            
             Console.WriteLine(ex);
             return (false, 101);
         }
@@ -254,6 +260,8 @@ public class TestService : ITestService
                 
                 await _db.UsersByCourse.AddRangeAsync(dataList);
                 
+                // TODO: [20221219-코드리뷰-15번] 목록으로 처리하는 로직에 대해서도 구현 해주세요. (시간까지 확인하여 데이터를 생성해주세요.)
+                
                 // 스코어 구하기
 
                 // 롱기스트 구하기
@@ -280,6 +288,7 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-13번] 로그 메시지 추가
             Console.WriteLine(ex);
             return (false, 101);
         }
@@ -392,6 +401,7 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
+            // TODO: [20221219-코드리뷰-14번] 로그 메시지 추가
             Console.WriteLine(ex);
             return (false, 101);
         }

@@ -1,5 +1,5 @@
 
-DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user_info_by_course`;
+DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user_info_by_club`;
 create table `ParkAebinDB`.tb_user_info_by_club
 (
     user_id  int unsigned    not null,
