@@ -5,7 +5,7 @@ public class GetUserBestRecordListHttpResponse
 {
     public List<UserBestRecordListItem> List { get; set; }
 
-    public GetUserBestRecordListHttpResponse(List<UserBestRecordListItem> list)
+    public GetUserBestRecordListHttpResponse(in List<UserBestRecordListItem> list)
     {
         List = list;
     }

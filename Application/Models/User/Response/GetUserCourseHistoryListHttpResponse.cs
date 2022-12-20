@@ -5,7 +5,7 @@ public class GetUserCourseHistoryListHttpResponse
 {
     public List<UserCourseHistoryListItem> List { get; set; }
 
-    public GetUserCourseHistoryListHttpResponse(List<UserCourseHistoryListItem> list)
+    public GetUserCourseHistoryListHttpResponse(in List<UserCourseHistoryListItem> list)
     {
         List = list;
     }

@@ -25,9 +25,8 @@ public class UserController : ControllerBase
         _user = user;
     }
 
-    [Route("best")]
-    [HttpGet]
-    public async Task<ActionResult> GetUserBestRecordList([FromBody] GetUserBestRecordListHttpRequest model)
+    [HttpGet("best")]
+    public async Task<ActionResult> GetUserBestRecordList([FromQuery] GetUserBestRecordListHttpRequest model)
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
 
@@ -59,6 +58,8 @@ public class UserController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);
     }
     
+    // TODO: [20221220-코드리뷰-24번] Route와 Http Method를 선언한 Attribute를 하나로 처리해주세요. 
+    // TODO: [20221220-코드리뷰-25번] Http Method의 경우 데이터를 받아올 때 Body가 아닌 Query String으로 받아와야합니다.
     [Route("course")]
     [HttpGet]
     public async Task<ActionResult> GetUserCourseHistoryList([FromBody] GetUserCourseHistoryListHttpRequest model)
@@ -99,6 +100,8 @@ public class UserController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
+    // TODO: [20221220-코드리뷰-26번] Route와 Http Method를 선언한 Attribute를 하나로 처리해주세요.
+    // TODO: [20221220-코드리뷰-27번] Http Method의 경우 데이터를 받아올 때 Body가 아닌 Query String으로 받아와야합니다.
     [Route("club")]
     [HttpGet]
     public async Task<ActionResult> GetUserClubInfoList([FromBody] GetUserClubInfoListHttpRequest model)

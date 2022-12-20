@@ -22,7 +22,7 @@ public class GetUserBestRecordListHttpRequest
 
     public GetUserBestRecordListRequest GetUserBestRecordList()
     {
-        return new GetUserBestRecordListRequest()
+        var test = new GetUserBestRecordListRequest()
         {
             Page = Page,
             PageSize = PageSize,
@@ -31,5 +31,8 @@ public class GetUserBestRecordListHttpRequest
             BestRecordRangeStart = BestRecordRangeStart,
             BestRecordRangeEnd = BestRecordRangeEnd
         };
+        ;
+
+        return test;
     }
 }

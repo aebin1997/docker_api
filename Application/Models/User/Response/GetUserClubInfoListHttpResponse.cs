@@ -5,7 +5,7 @@ public class GetUserClubInfoListHttpResponse
 {
     public List<UserClubInfoListItem> List { get; set; }
 
-    public GetUserClubInfoListHttpResponse(List<UserClubInfoListItem> list)
+    public GetUserClubInfoListHttpResponse(in List<UserClubInfoListItem> list)
     {
         List = list;
     }

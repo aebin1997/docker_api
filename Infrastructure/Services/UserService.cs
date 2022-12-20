@@ -37,7 +37,7 @@ public class UserService : IUserService
         _db = db;
     }
     
-    // TODO: [20221219-코드리뷰-16번] 기존에 개발하신 회원 관련 로직도 다시 추가해주세요. (가입, 수정, 삭제 등) - done
+    // TODO: [20221219-코드리뷰-16번-확인] 기존에 개발하신 회원 관련 로직도 다시 추가해주세요. (가입, 수정, 삭제 등) - done
     
     public DateTime UnixTimeToDateTime(ulong unixTime)
     {
@@ -90,7 +90,7 @@ public class UserService : IUserService
             //         Longest = best.Longest
             //     }).ToListAsync();
 
-            // TODO: [20221219-코드리뷰-17번] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
+            // TODO: [20221219-코드리뷰-17번-다시] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
             // var dataList = await _db.Users
             //     .AsNoTracking()
             //     .Join(
@@ -104,6 +104,7 @@ public class UserService : IUserService
             //         Longest = best.Longest
             //     }).ToListAsync();
 
+            
             var query = _db.Users
                 .AsNoTracking()
                 .Join(
@@ -135,6 +136,7 @@ public class UserService : IUserService
                 };
             }
             
+            // TODO: [20221220-코드리뷰-28번] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요.
             var dataList = query.OrderByDescending(p => p.UserId)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
@@ -147,8 +149,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-19번] 로그 메시지 수정해주세요. - done
-            
+            // TODO: [20221219-코드리뷰-19번-확인] 로그 메시지 수정해주세요. - done
             using (LogContext.PushProperty("LogProperty", new 
                    {
                        request = JObject.FromObject(request)
@@ -165,7 +166,7 @@ public class UserService : IUserService
     {
         try
         {
-            // TODO: [20221219-코드리뷰-20번] 불필요한 로직을 제거해주세요. - done
+            // TODO: [20221219-코드리뷰-20번-확인] 불필요한 로직을 제거해주세요. - done
             
             if (request.Page <= 0) 
             {
@@ -183,11 +184,13 @@ public class UserService : IUserService
             var query = _db.UsersByCourse
                 .AsNoTracking();
             
+            // 단일 조회
             if (request.UserId != null)
             {
                 query = query.Where(p => p.UserId == request.UserId);
             }
 
+            // 다중 조회
             if (request.CourseId != null)
             {
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
@@ -233,7 +236,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-21번] 로그 메시지 수정해주세요. - done
+            // TODO: [20221219-코드리뷰-21번-확인] 로그 메시지 수정해주세요. - done
             using (LogContext.PushProperty("JsonData", new
                    {
                        request = JObject.FromObject(request)
@@ -250,7 +253,7 @@ public class UserService : IUserService
     {
         try
         {
-            // TODO: [20221219-코드리뷰-23번] 불필요한 로직을 제거해주세요. - done
+            // TODO: [20221219-코드리뷰-23번-확인] 불필요한 로직을 제거해주세요. - done
 
             if (request.Page <= 0)
             {
@@ -324,6 +327,7 @@ public class UserService : IUserService
             //             }).ToList()
             //         }).ToListAsync();
             
+            // TODO: [20221220-코드리뷰-29번] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요.
             var response = new GetUserClubInfoListResponse
             {
                 List = dataList
@@ -333,7 +337,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-22번] 로그 메시지 수정해주세요. - done
+            // TODO: [20221219-코드리뷰-22번-확인] 로그 메시지 수정해주세요. - done
             _logger.LogError(ex, "회원 별 클럽 거리 정보 조회 중 오류 발생");
 
             return (false, 1003, null);
