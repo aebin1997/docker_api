@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS `ParkAebinDB`.`tb_user_info_by_course`;
 create table `ParkAebinDB`.tb_user_info_by_course
 (
@@ -10,6 +9,3 @@ create table `ParkAebinDB`.tb_user_info_by_course
     longest   decimal(5, 2)    null,
     updated   bigint unsigned  not null
 );
-
-create index course_id
-    on `ParkAebinDB`.tb_user_info_by_course (course_id);

@@ -11,11 +11,11 @@ public class UserListItem
 {
     public int UserId { get; set; }
 
-    public string Username { get; set; } = "";
+    public string Username { get; set; } 
         
-    public ulong Created { get; set; }
+    public DateTime Created { get; set; }
         
-    public ulong Updated { get; set; }
+    public DateTime Updated { get; set; }
         
     public bool Deleted { get; set; }
 }

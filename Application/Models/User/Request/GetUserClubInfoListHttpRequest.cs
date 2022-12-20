@@ -3,7 +3,7 @@ using Infrastructure.Models.User;
 
 namespace Application.Models.User.Request;
 
-public class GetUserCourseHistoryListHttpRequest
+public class GetUserClubInfoListHttpRequest
 {
     [Required]
     public int Page { get; set; }
@@ -13,16 +13,16 @@ public class GetUserCourseHistoryListHttpRequest
     
     public int? UserId { get; set; }
     
-    public int[] CourseId { get; set; }
-
-    public GetUserCourseHistoryListRequest GetUserCourseHistoryList()
+    public string[] Club { get; set; }
+    
+    public GetUserClubInfoListRequest GetUserClubInfoList()
     {
-        return new GetUserCourseHistoryListRequest()
+        return new GetUserClubInfoListRequest()
         {
             Page = Page,
             PageSize = PageSize,
             UserId = UserId,
-            CourseId = CourseId
+            Club = Club
         };
     }
 }

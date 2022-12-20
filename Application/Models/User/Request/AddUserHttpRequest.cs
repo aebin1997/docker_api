@@ -6,10 +6,13 @@ namespace Application.Models.User;
 public class AddUserHttpRequest
 {
     [Required]
-    public string Username { get; set; } = "";
+    public string Username { get; set; } 
 
     [Required]
-    public string Password { get; set; } = "";
+    public string Password { get; set; } 
+    
+    [Required]
+    public string Name { get; set; }
 
     public AddUserRequest ToAddUserRequest()
     {
@@ -17,6 +20,7 @@ public class AddUserHttpRequest
         {
             Username = Username,
             Password = Password,
+            Name = Name
         };
     }
 }

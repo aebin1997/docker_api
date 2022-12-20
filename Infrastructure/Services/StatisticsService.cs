@@ -34,17 +34,6 @@ public class StatisticsService : IStatisticsService
         _testDB = testDB;
     }
 
-    // public static DateTime UnixTimeToDateTime(ulong unixTime)
-    // {
-    //     DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-    //         
-    //     dateTime = dateTime.AddMilliseconds(unixTime).ToUniversalTime();
-    //
-    //     int month = dateTime.Month;
-    //     
-    //     return dateTime;
-    // }
-    
     public static int UnixTimeToMonth(ulong unixTime)
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
@@ -307,7 +296,6 @@ public class StatisticsService : IStatisticsService
                     Score = p.Score,
                     Longest = p.Longest,
                     Updated = UnixTimeToMonth(p.Updated)
-                    // Updated = UnixTimeToDateTime(p.Updated)
                 })
                 .ToList();
 

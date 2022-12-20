@@ -9,8 +9,11 @@ public class GetUsersHttpRequest
     public int Page { get; set; }
 
     [Required]
-    [Range(2, 10)]
     public int PageSize { get; set; }
+    
+    public int UserId { get; set; }
+    
+    public string Club { get; set; }
 
     public GetUsersRequest ToGetUsersRequest()
     {
@@ -18,6 +21,8 @@ public class GetUsersHttpRequest
         {
             Page = Page,
             PageSize = PageSize,
+            UserId = UserId,
+            Club = Club
         };
     }
 }

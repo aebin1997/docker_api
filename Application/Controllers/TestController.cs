@@ -28,20 +28,15 @@ public class TestController : ControllerBase
 
         if (result.isSuccess == false)
         {
-            var badRequestErrorCode = new int[] { };
-            var serverErrorCode = new int[] { }; 
+            var serverErrorCode = new int[] { 1 }; 
             
-            if (badRequestErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-            else if (serverErrorCode.Contains(result.errorCode))
+            if (serverErrorCode.Contains(result.errorCode))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
             {
-                // _logger.LogError("회원 추가에 대한 결과로 정의되지 않은 에러코드가 반환됨"); 
+                _logger.LogError("회원 테이블 더미 데이터 생성 중 정의되지 않은 에러코드가 반환됨"); 
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -58,19 +53,16 @@ public class TestController : ControllerBase
 
         if (result.isSuccess == false)
         {
-            var badRequestErrorCode = new int[] { };
-            var serverErrorCode = new int[] { }; 
+            var serverErrorCode = new int[] { 2 }; 
             
-            if (badRequestErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-            else if (serverErrorCode.Contains(result.errorCode))
+            if (serverErrorCode.Contains(result.errorCode))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
             {
+                _logger.LogError("코스 테이블 더미 데이터 생성 중 정의되지 않은 에러코드가 반환됨"); 
+                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -86,19 +78,16 @@ public class TestController : ControllerBase
 
         if (result.isSuccess == false)
         {
-            var badRequestErrorCode = new int[] { };
-            var serverErrorCode = new int[] { }; 
+            var serverErrorCode = new int[] { 3 }; 
             
-            if (badRequestErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-            else if (serverErrorCode.Contains(result.errorCode))
+            if (serverErrorCode.Contains(result.errorCode))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
             {
+                _logger.LogError("회원별 라운딩 정보 더미데이터 생성 중  정의되지 않은 에러코드가 반환됨"); 
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -114,19 +103,16 @@ public class TestController : ControllerBase
 
         if (result.isSuccess == false)
         {
-            var badRequestErrorCode = new int[] { };
-            var serverErrorCode = new int[] { }; 
+            var serverErrorCode = new int[] { 4 }; 
             
-            if (badRequestErrorCode.Contains(result.errorCode))
-            {
-                return StatusCode(StatusCodes.Status400BadRequest);
-            }
-            else if (serverErrorCode.Contains(result.errorCode))
+            if (serverErrorCode.Contains(result.errorCode))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
             else
             {
+                _logger.LogError("회원별 클럽 거리 더미데이터 생성 중  정의되지 않은 에러코드가 반환됨"); 
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

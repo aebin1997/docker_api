@@ -1,9 +1,8 @@
-using System.Security.Cryptography;
 using Infrastructure.Context;
-using Infrastructure.Models.Test;
 using Microsoft.Extensions.Logging;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Serilog.Context;
 
 namespace Infrastructure.Services;
 
@@ -19,13 +18,13 @@ public interface ITestService
 public class TestService : ITestService 
 {
     // Log 
-    private readonly ILogger<UserService> _logger;
+    private readonly ILogger<TestService> _logger;
         
     // DB
     private readonly SystemDBContext _db;
     
     // Service
-    public TestService(ILogger<UserService> logger, SystemDBContext db)
+    public TestService(ILogger<TestService> logger, SystemDBContext db)
     {
         _logger = logger;
 
@@ -92,11 +91,12 @@ public class TestService : ITestService
             return (true, 0);
             
         }
-        catch 
+        catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-10번] 로그 메시지 추가
-            
-            return (false, 100);
+            // TODO: [20221219-코드리뷰-22번] 로그 메시지 수정해주세요. - done
+            _logger.LogError(ex, "회원 테이블 더미 데이터 생성 중 오류 발생");
+
+            return (false, 1);
         }
     }
 
@@ -118,15 +118,16 @@ public class TestService : ITestService
 
             return (true, 0);
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-11번] 로그 메시지 추가
-            
-            return (false, 101);
+            // TODO: [20221219-코드리뷰-11번] 로그 메시지 추가 - done
+            _logger.LogError(ex, "코스 테이블 더미 데이터 생성 중 오류 발생");
+
+            return (false, 2);
         }
     }
 
-    public async Task<(bool isSuccess, int errorCode)> AddUserByCourse()
+    public async Task<(bool isSuccess, int errorCode)> AddUserByCourse2()
     {
         try
         {
@@ -207,14 +208,14 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-12번] 로그 메시지 추가
-            
-            Console.WriteLine(ex);
-            return (false, 101);
+            // TODO: [20221219-코드리뷰-12번] 로그 메시지 추가 - done
+            _logger.LogError(ex, "회원별 라운딩 정보 더미데이터 생성 중 정의되지 않은 에러코드가 반환됨"); 
+
+            return (false, 3);
         }
     }
 
-    public async Task<(bool isSuccess, int errorCode)> AddUserByCourse2()
+    public async Task<(bool isSuccess, int errorCode)> AddUserByCourse()
     {
         try
         {
@@ -257,29 +258,42 @@ public class TestService : ITestService
                     
                     dataList.Add(data);
                 }
+
+                var bestScore = (from data in dataList
+                        orderby data.Score, data.Updated
+                        select new
+                        {
+                            Score = data.Score,
+                            ScoreUpdated = data.Updated
+                        }
+                    ).FirstOrDefault();
                 
+                var longest = (from data in dataList
+                        orderby data.Longest descending , data.Updated
+                        select new
+                        {
+                            data.Longest,
+                            data.Updated
+                        }
+                    ).FirstOrDefault();
+
+                if (bestScore != null && longest != null)
+                {
+                    var bestRecord = new UserBestRecordModel()
+                    { 
+                        UserId = i,
+                        Score = bestScore.Score,
+                        ScoreUpdated = bestScore.ScoreUpdated,
+                        Longest = longest.Longest,
+                        LongestUpdated = longest.Updated
+                    }; 
+                
+                    await _db.UsersBestRecord.AddAsync(bestRecord);
+                }
+
                 await _db.UsersByCourse.AddRangeAsync(dataList);
                 
-                // TODO: [20221219-코드리뷰-15번] 목록으로 처리하는 로직에 대해서도 구현 해주세요. (시간까지 확인하여 데이터를 생성해주세요.)
-                
-                // 스코어 구하기
-
-                // 롱기스트 구하기
-                
-                
-                // API로 만들때는 속도 우선 (효율 좋아야함) - 클라이언트로 인한 요청
-                // 전체 데이터를 조회
-                // 그 다음에 score 조건에 넣을 데이터 목록 만들고
-                // 최종 결과 데이터 목록
-                
-                
-                // var bestScore = await _db.UsersByCourse
-                //     .AsNoTracking()
-                //     .Where(p => p.Score == )
-                //     .Select(p => new
-                //     {
-                //         
-                //     })
+                // TODO: [20221219-코드리뷰-15번] 목록으로 처리하는 로직에 대해서도 구현 해주세요. (시간까지 확인하여 데이터를 생성해주세요.) - done
             }
             
             await _db.SaveChangesAsync();
@@ -288,9 +302,10 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-13번] 로그 메시지 추가
-            Console.WriteLine(ex);
-            return (false, 101);
+            // TODO: [20221219-코드리뷰-13번] 로그 메시지 추가 - done
+            _logger.LogError(ex, "회원별 라운딩 정보 더미데이터 생성 중  정의되지 않은 에러코드가 반환됨"); 
+
+            return (false, 3);
         }
     }
     
@@ -323,7 +338,6 @@ public class TestService : ITestService
 
                     var nowUnixTime = (ulong) new DateTimeOffset(randomDate).ToUnixTimeMilliseconds();
 
-                    //todo: decimal distance; 로 초기화 안하면 오류남
                     decimal distance = 0;
 
                     switch (t)
@@ -401,9 +415,10 @@ public class TestService : ITestService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-14번] 로그 메시지 추가
-            Console.WriteLine(ex);
-            return (false, 101);
+            // TODO: [20221219-코드리뷰-14번] 로그 메시지 추가 - done
+            _logger.LogError(ex, "회원별 클럽 거리 더미데이터 생성 중  정의되지 않은 에러코드가 반환됨"); 
+
+            return (false, 4);
         }
     }
 

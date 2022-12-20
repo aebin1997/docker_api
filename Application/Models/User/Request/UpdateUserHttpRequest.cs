@@ -1,13 +1,14 @@
-using System.ComponentModel.DataAnnotations;
 using Infrastructure.Models.User;
 
 namespace Application.Models.User;
 
 public class UpdateUserHttpRequest
 {
-    [Required] public string Username { get; set; } = "";
+    public string Username { get; set; } 
 
-    [Required] public string Password { get; set; } = "";
+    public string Password { get; set; } 
+    
+    public string Name { get; set; }
 
     public UpdateUserParameterRequest ToUpdateUserHttpRequest(int id)
     {
@@ -16,6 +17,7 @@ public class UpdateUserHttpRequest
             UserId = id,
             Username = Username,
             Password = Password,
+            Name = Name
         };
     }
 }

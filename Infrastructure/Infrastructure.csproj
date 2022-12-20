@@ -18,9 +18,7 @@
     
     <ItemGroup>
       <Folder Include="Models\Course\Request" />
-      <Folder Include="Models\PreviousUser" />
       <Folder Include="Models\Statistics\Request" />
       <Folder Include="Models\Test\Request" />
-      <Folder Include="Models\User\Request" />
     </ItemGroup>
 </Project>
