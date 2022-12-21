@@ -33,6 +33,7 @@ public class CourseService : ICourseService
     {
         try
         {
+            // TODO: [20221221-코드리뷰-39번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
             var dataList = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.CourseId)
@@ -84,6 +85,7 @@ public class CourseService : ICourseService
     {
         try
         {
+            // TODO: [20221221-코드리뷰-40번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
             var dataList = await _testDB.UsersByCourse
                 .AsNoTracking()
                 .GroupBy(p => p.CourseId)

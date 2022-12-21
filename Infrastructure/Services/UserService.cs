@@ -37,8 +37,6 @@ public class UserService : IUserService
         _db = db;
     }
     
-    // TODO: [20221219-코드리뷰-16번-확인] 기존에 개발하신 회원 관련 로직도 다시 추가해주세요. (가입, 수정, 삭제 등) - done
-    
     public DateTime UnixTimeToDateTime(ulong unixTime)
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
@@ -52,8 +50,6 @@ public class UserService : IUserService
     {
         try
         {
-            // TODO: [20221219-코드리뷰-18번] 노션에 작성되어있는 필터 조건 추가해주세요. - done
-            
             if (request.Page <= 0) 
             {
                 using (LogContext.PushProperty("LogProperty", new 
@@ -80,7 +76,7 @@ public class UserService : IUserService
                 return (false, 10002, null);
             }
 
-            // TODO: [20221219-코드리뷰-17번-다시] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
+            // TODO: [20221219-코드리뷰-17번-확인] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
             
             var query = _db.Users
                 .AsNoTracking()
@@ -113,7 +109,8 @@ public class UserService : IUserService
                 };
             }
             
-            // TODO: [20221220-코드리뷰-28번] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요. - done
+            // TODO: [20221220-코드리뷰-28번-확인] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요. - done
+            // TODO: [20221221-코드리뷰-30번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
             var dataList = await query
                 .Select(p => new UserBestRecordListItem
                 {
@@ -137,7 +134,6 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-19번-확인] 로그 메시지 수정해주세요. - done
             using (LogContext.PushProperty("LogProperty", new 
                    {
                        request = JObject.FromObject(request)
@@ -154,8 +150,6 @@ public class UserService : IUserService
     {
         try
         {
-            // TODO: [20221219-코드리뷰-20번-확인] 불필요한 로직을 제거해주세요. - done
-            
             if (request.Page <= 0) 
             {
                 using (LogContext.PushProperty("LogProperty", new 
@@ -184,6 +178,7 @@ public class UserService : IUserService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
 
+            // TODO: [20221221-코드리뷰-31번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
             var dataList = await query
                 .GroupBy(p => p.UserId)
                 .Select(p => new UserCourseHistoryListItem
@@ -224,7 +219,6 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-21번-확인] 로그 메시지 수정해주세요. - done
             using (LogContext.PushProperty("JsonData", new
                    {
                        request = JObject.FromObject(request)
@@ -241,8 +235,6 @@ public class UserService : IUserService
     {
         try
         {
-            // TODO: [20221219-코드리뷰-23번-확인] 불필요한 로직을 제거해주세요. - done
-
             if (request.Page <= 0)
             {
                 using (LogContext.PushProperty("LogProperty", new
@@ -281,7 +273,8 @@ public class UserService : IUserService
             {
                 query = query.Where(p => request.Club.Contains(p.Club));
             }
-
+            
+            // TODO: [20221221-코드리뷰-32번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
             var dataList = await query
                 .GroupBy(p => p.UserId)
                 .Select(p => new UserClubInfoListItem
@@ -299,7 +292,7 @@ public class UserService : IUserService
                 .Take(request.PageSize)
                 .ToList();
             
-            // TODO: [20221220-코드리뷰-29번] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
+            // TODO: [20221220-코드리뷰-29번-확인] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
             var response = new GetUserClubInfoListResponse
             {
                 List = dataPageList
@@ -309,7 +302,6 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // TODO: [20221219-코드리뷰-22번-확인] 로그 메시지 수정해주세요. - done
             _logger.LogError(ex, "회원 별 클럽 거리 정보 조회 중 오류 발생");
 
             return (false, 1003, null);
