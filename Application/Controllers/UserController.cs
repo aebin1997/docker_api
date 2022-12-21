@@ -123,7 +123,13 @@ public class UserController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 별 클럽 거리 정보 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("회원 별 클럽 거리 정보 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -156,7 +162,13 @@ public class UserController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 목록 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("회원 목록 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                }
 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -259,6 +271,7 @@ public class UserController : ControllerBase
             {
                 using (LogContext.PushProperty("LogProperty", new
                        {
+                           id = id,
                            model = JObject.FromObject(model)
                        }))
                 {
@@ -301,7 +314,7 @@ public class UserController : ControllerBase
             {
                 using (LogContext.PushProperty("LogProperty", new
                        {
-                           id = JObject.FromObject(id)
+                           id = id
                        }))
                 {
                     _logger.LogError("회원 삭제중 정의되지 않은 에러코드가 반환됨");

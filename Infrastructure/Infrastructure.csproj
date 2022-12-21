@@ -17,7 +17,6 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="Models\Course\Request" />
       <Folder Include="Models\Statistics\Request" />
       <Folder Include="Models\Test\Request" />
     </ItemGroup>

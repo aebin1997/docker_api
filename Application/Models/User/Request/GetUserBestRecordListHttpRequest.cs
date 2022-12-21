@@ -31,7 +31,6 @@ public class GetUserBestRecordListHttpRequest
             BestRecordRangeStart = BestRecordRangeStart,
             BestRecordRangeEnd = BestRecordRangeEnd
         };
-        ;
 
         return test;
     }

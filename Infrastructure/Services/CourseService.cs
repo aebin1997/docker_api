@@ -3,14 +3,15 @@ using Infrastructure.Models.Course;
 using Infrastructure.Models.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Serilog.Context;
 
 namespace Infrastructure.Services;
 
 public interface ICourseService
 {
-    Task<(bool isSuccess, int errorCode, GetLongestListByCourseResponse response)> GetLongestListByCourse(int page, int pageSize, int courseId);
-    Task<(bool isSuccess, int errorCode, GetScoreListByCourseResponse response)> GetScoreListByCourse(int page, int pageSize, int courseId);
+    Task<(bool isSuccess, int errorCode, GetLongestListByCourseResponse response)> GetLongestListByCourse(GetLongestListByCourseRequest request);
+    Task<(bool isSuccess, int errorCode, GetScoreListByCourseResponse response)> GetScoreListByCourse(GetScoreListByCourseRequest request);
 }
 
 public class CourseService : ICourseService
@@ -19,117 +20,175 @@ public class CourseService : ICourseService
     private readonly ILogger<CourseService> _logger;
         
     // DB
-    private readonly SystemDBContext _testDB;
+    private readonly SystemDBContext _db;
         
     // Service
-    public CourseService(ILogger<CourseService> logger, SystemDBContext testDB)
+    public CourseService(ILogger<CourseService> logger, SystemDBContext db)
     {
         _logger = logger;
 
-        _testDB = testDB;
+        _db = db;
     }
 
-    public async Task<(bool isSuccess, int errorCode, GetLongestListByCourseResponse response)> GetLongestListByCourse(int page, int pageSize, int courseId)
+    public async Task<(bool isSuccess, int errorCode, GetLongestListByCourseResponse response)> GetLongestListByCourse(GetLongestListByCourseRequest request)
     {
         try
         {
-            // TODO: [20221221-코드리뷰-39번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
-            var dataList = await _testDB.UsersByCourse
-                .AsNoTracking()
+            if (request.Page <= 0)
+            {
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("코스 별 롱기스트 조회: 페이지 값이 정수가 아님");
+                }
+
+                return (false, 20001, null);
+            }
+
+            if (request.PageSize is not (10 or 20 or 50))
+            {
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("코스 별 롱기스트 조회: 페이지 사이즈가 범위를 벋어남");
+                }
+
+                return (false, 20002, null);
+            }
+
+            // TODO: [20221221-코드리뷰-39번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+
+            var query = _db.UsersByCourse
+                .AsNoTracking();
+
+            if (request.CourseId != null)
+            {
+                query = query.Where(p => p.CourseId == request.CourseId);
+            }
+
+            if (request.LongestRangeStart != null && request.LongestRangeEnd != null)
+            {
+                query = query.Where(p =>
+                    p.Longest >= request.LongestRangeStart && p.Longest <= request.LongestRangeEnd);
+            }
+
+            var dataPageList = await query
                 .GroupBy(p => p.CourseId)
-                .Where(p => p.Key == 1)
-                .Select(p => new
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => new GetLongestListItem
                 {
                     CourseId = p.Key,
-                    LongestGroup = p.Select(s => new
+                    List = p.Select(s => new GetLongestItem
                     {
-                        s.Longest
-                    })
+                        Longest = s.Longest
+                    }).ToList()
                 }).ToListAsync();
             
-            var dataPageList = dataList.OrderByDescending(p => p.CourseId)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            
-            var response = new GetLongestListByCourseResponse();
-            
-            response.List = (from data in dataPageList
-                select new GetLongestListItem()
-                {
-                    CourseId = data.CourseId,
-                    List = (from longest  in data.LongestGroup
-                        select new GetLongestItem
-                        {
-                            Longest = longest.Longest
-                        }).ToList()
-                }).ToList();
-            
+            var response = new GetLongestListByCourseResponse
+            {
+                List = dataPageList
+            };
+
             return (true, 0, response);
         }
         catch (Exception ex)
         {
             using (LogContext.PushProperty("JsonData", new
                    {
-                       
+                       request = JObject.FromObject(request)
                    }))
             {
-                _logger.LogError(ex, "노출중인 팝업 조회 중 오류 발생");
+                _logger.LogError(ex, "코스 별 롱기스트 조회 중 오류 발생");
             }
 
-            return (false, 0, null);
+            return (false, 2000, null);
         }
     }
 
-    public async Task<(bool isSuccess, int errorCode, GetScoreListByCourseResponse response)> GetScoreListByCourse(int page, int pageSize, int courseId)
+    public async Task<(bool isSuccess, int errorCode, GetScoreListByCourseResponse response)> GetScoreListByCourse(GetScoreListByCourseRequest request)
     {
         try
         {
-            // TODO: [20221221-코드리뷰-40번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
-            var dataList = await _testDB.UsersByCourse
-                .AsNoTracking()
+            if (request.Page <= 0)
+            {
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("코스 별 스코어 조회: 페이지 값이 정수가 아님");
+                }
+
+                return (false, 20011, null);
+            }
+
+            if (request.PageSize is not (10 or 20 or 50))
+            {
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("코스 별 스코어 조회: 페이지 사이즈가 범위를 벋어남");
+                }
+
+                return (false, 20012, null);
+            }
+
+            var query = _db.UsersByCourse
+                .AsNoTracking();
+
+            if (request.CourseId != null)
+            {
+                query = query.Where(p => p.CourseId == request.CourseId);
+            }
+
+            if (request.ScoreRangeStart != null && request.ScoreRangeEnd != null)
+            {
+                query = query.Where(p =>
+                    p.Score >= request.ScoreRangeStart && p.Score <= request.ScoreRangeEnd);
+            }
+
+            // TODO: [20221221-코드리뷰-40번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+
+            var dataPageList = await query
                 .GroupBy(p => p.CourseId)
-                .Where(p => p.Key == 1)
-                .Select(p => new
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => new GetScoreListItem
                 {
                     CourseId = p.Key,
-                    ScoreGroup = p.Select(s => new
+                    List = p.Select(s => new GetScoreItem
                     {
-                        s.Score
-                    })
+                        Score = s.Score
+                    }).ToList()
                 }).ToListAsync();
             
-            var dataPageList = dataList.OrderByDescending(p => p.CourseId)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            
-            var response = new GetScoreListByCourseResponse();
-            
-            response.List = (from data in dataPageList
-                select new GetScoreListItem()
-                {
-                    CourseId = data.CourseId,
-                    List = (from score  in data.ScoreGroup
-                        select new GetScoreItem
-                        {
-                            Score = score.Score,
-                        }).ToList()
-                }).ToList();
-            
+            var response = new GetScoreListByCourseResponse
+            {
+                List = dataPageList
+            };
+
             return (true, 0, response);
         }
         catch (Exception ex)
         {
             using (LogContext.PushProperty("JsonData", new
                    {
-                       
+                       request = JObject.FromObject(request)
                    }))
             {
-                _logger.LogError(ex, "노출중인 팝업 조회 중 오류 발생");
+                _logger.LogError(ex, "코스 별 스코어 조회 중 오류 발생");
             }
 
-            return (false, 0, null);
+            return (false, 2001, null);
         }
     }
 }

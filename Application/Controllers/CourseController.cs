@@ -2,6 +2,8 @@ using Application.Models.Course;
 using Application.Models.User;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using Serilog.Context;
 
 namespace Application.Controllers;
 
@@ -22,21 +24,20 @@ public class CourseController : ControllerBase
         _course = course;
     }
     
-    // TODO: [20221221-코드리뷰-33번] Route와 Http Method Attribute 하나로 통합해주세요.
-    // TODO: [20221221-코드리뷰-34번] Http Request Class 명칭을 수정해주세요.
-    [Route("longest")]
-    [HttpGet]
-    public async Task<ActionResult> GetLongestListByCourse([FromQuery] PagingHttpRequest model)
+    // TODO: [20221221-코드리뷰-33번] Route와 Http Method Attribute 하나로 통합해주세요. - done
+    // TODO: [20221221-코드리뷰-34번] Http Request Class 명칭을 수정해주세요. - done
+    [HttpGet("longest")]
+    public async Task<ActionResult> GetLongestListByCourse([FromQuery] GetLongestListByCourseHttpRequest model)
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
-        // TODO: [20221221-코드리뷰-37번] UserController에서 사용하신것처럼 Service Request class 변환 방식으로 수정해주세요.
-        var result = await _course.GetLongestListByCourse(model.Page, model.PageSize, model.CourseId);
+        // TODO: [20221221-코드리뷰-37번] UserController에서 사용하신것처럼 Service Request class 변환 방식으로 수정해주세요. - done
+        var result = await _course.GetLongestListByCourse(model.GetLongestListByCourse());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 20001, 20002 };
+            var serverErrorCode = new int[] { 2000 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -48,15 +49,13 @@ public class CourseController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("LogProperty", new
-                //        {
-                //            idx = JObject.FromObject(idx)
-                //        }))
-                // {
-                //     _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
-                // }
-    
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("코스 별 롱기스트 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                }
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -67,21 +66,20 @@ public class CourseController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    // TODO: [20221221-코드리뷰-35번] Route와 Http Method Attribute 하나로 통합해주세요.
-    // TODO: [20221221-코드리뷰-36번] Http Request Class 명칭을 수정해주세요.
-    [Route("score")]
-    [HttpGet]
-    public async Task<ActionResult> GetScoreListByCourse([FromQuery] PagingHttpRequest model)
+    // TODO: [20221221-코드리뷰-35번] Route와 Http Method Attribute 하나로 통합해주세요. - done
+    // TODO: [20221221-코드리뷰-36번] Http Request Class 명칭을 수정해주세요. - done
+    [HttpGet("score")]
+    public async Task<ActionResult> GetScoreListByCourse([FromQuery] GetScoreListByCourseHttpRequest model)
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
-        // TODO: [20221221-코드리뷰-38번] UserController에서 사용하신것처럼 Service Request class 변환 방식으로 수정해주세요.
-        var result = await _course.GetScoreListByCourse(model.Page, model.PageSize, model.CourseId);
+        // TODO: [20221221-코드리뷰-38번] UserController에서 사용하신것처럼 Service Request class 변환 방식으로 수정해주세요. - done
+        var result = await _course.GetScoreListByCourse(model.GetScoreListByCourse());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 20011, 20012 };
+            var serverErrorCode = new int[] { 2001 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -93,15 +91,13 @@ public class CourseController : ControllerBase
             }
             else
             {
-                // using (LogContext.PushProperty("LogProperty", new
-                //        {
-                //            idx = JObject.FromObject(idx)
-                //        }))
-                // {
-                //     _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
-                // }
-    
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("LogProperty", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("코스 별 스코어 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                }
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }

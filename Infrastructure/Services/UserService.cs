@@ -202,19 +202,6 @@ public class UserService : IUserService
                 List = dataPageList
             };
 
-            // response.List = (from data in dataPageList
-            //     select new UserCourseHistoryListItem
-            //     {
-            //         UserId = data.UserId,
-            //         List = (from course in data.CourseGroup
-            //                 select new UserCourseHistoryItem
-            //                 {
-            //                     CourseId = course.CourseId,
-            //                     Score = course.Score,
-            //                     Longest = course.Longest
-            //                 }).ToList()
-            //     }).ToList();
-            
             return (true, 0, response);
         }
         catch (Exception ex)
