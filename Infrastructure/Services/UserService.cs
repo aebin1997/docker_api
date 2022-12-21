@@ -110,8 +110,12 @@ public class UserService : IUserService
             }
             
             // TODO: [20221220-코드리뷰-28번-확인] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요. - done
-            // TODO: [20221221-코드리뷰-30번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
-            var dataList = await query
+            // TODO: [20221221-코드리뷰-30번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            
+            var dataPageList = await query
+                .OrderByDescending(p => p.UserId)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .Select(p => new UserBestRecordListItem
                 {
                     UserId = p.UserId,
@@ -119,11 +123,6 @@ public class UserService : IUserService
                     Score = p.Score,
                     Longest = p.Longest
                 }).ToListAsync();
-                
-            var dataPageList = dataList.OrderByDescending(p => p.UserId)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
 
             var response = new GetUserBestRecordListResponse
             {
@@ -178,9 +177,13 @@ public class UserService : IUserService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
 
-            // TODO: [20221221-코드리뷰-31번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
-            var dataList = await query
+            // TODO: [20221221-코드리뷰-31번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done 
+            
+            var dataPageList = await query
                 .GroupBy(p => p.UserId)
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .Select(p => new UserCourseHistoryListItem
                 {
                     UserId = p.Key,
@@ -191,12 +194,7 @@ public class UserService : IUserService
                         Longest = s.Longest
                     }).ToList()
                 }).ToListAsync();
-            
-            var dataPageList = dataList.OrderByDescending(p => p.UserId)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
-            
+
             var response = new GetUserCourseHistoryListResponse
             {
                 List = dataPageList
@@ -261,9 +259,13 @@ public class UserService : IUserService
                 query = query.Where(p => request.Club.Contains(p.Club));
             }
             
-            // TODO: [20221221-코드리뷰-32번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요.
-            var dataList = await query
+            // TODO: [20221221-코드리뷰-32번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            
+            var dataPageList = await query
                 .GroupBy(p => p.UserId)
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .Select(p => new UserClubInfoListItem
                 {
                     UserId = p.Key,
@@ -273,13 +275,8 @@ public class UserService : IUserService
                         Distance = s.Distance
                     }).ToList()
                 }).ToListAsync();
-
-            var dataPageList = dataList.OrderByDescending(p => p.UserId)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
             
-            // TODO: [20221220-코드리뷰-29번-확인] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
+          // TODO: [20221220-코드리뷰-29번-확인] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
             var response = new GetUserClubInfoListResponse
             {
                 List = dataPageList
@@ -316,29 +313,25 @@ public class UserService : IUserService
                 .AsNoTracking()
                 .Where(p => p.Deleted == false);
                     
-            var userList = await query
-                .Select(p => new
+            var dataPageList = await query
+                .OrderByDescending(p => p.UserId)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => new UserListItem
                 {
-                    p.UserId, p.Username, p.Password, p.Name, p.Created, p.Updated, p.Deleted
+                    UserId = p.UserId,
+                    Username = p.Username,
+                    Created = UnixTimeToDateTime(p.Created),
+                    Updated = UnixTimeToDateTime(p.Updated),
+                    Deleted = p.Deleted
                 })
                 .ToListAsync();
 
-            var pageList = userList.OrderByDescending(p => p.UserId)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToList();
-            
-            var response = new UserListResponse();
-            response.TotalCount = userList.Count;
-            response.List = (from user in pageList
-                select new UserListItem
-                {
-                    UserId = user.UserId,
-                    Username = user.Username,
-                    Created = UnixTimeToDateTime(user.Created),
-                    Updated = UnixTimeToDateTime(user.Updated),
-                    Deleted = user.Deleted
-                }).ToList();
+            var response = new UserListResponse
+            {
+                TotalCount = dataPageList.Count,
+                List = dataPageList
+            };
 
             return (true, 0, response);
         }
