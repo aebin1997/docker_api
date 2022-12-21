@@ -79,39 +79,16 @@ public class UserService : IUserService
                 
                 return (false, 10002, null);
             }
-            
-            // var dataList2 = await (from user in _testDB.Users
-            //     join best in _testDB.UsersBestRecord
-            //         on user.UserId equals best.UserId
-            //     select new
-            //     {
-            //         Name = user.Name,
-            //         Score = best.Score,
-            //         Longest = best.Longest
-            //     }).ToListAsync();
 
             // TODO: [20221219-코드리뷰-17번-다시] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
-            // var dataList = await _db.Users
-            //     .AsNoTracking()
-            //     .Join(
-            //     _db.UsersBestRecord,
-            //     user => user.UserId,
-            //     best => best.UserId,
-            //     (user, best) => new UserBestRecordListItem
-            //     {
-            //         Name = user.Name,
-            //         Score = best.Score,
-            //         Longest = best.Longest
-            //     }).ToListAsync();
-
             
             var query = _db.Users
                 .AsNoTracking()
                 .Join(
-                    _db.UsersBestRecord,
+                    _db.UsersBestRecord.AsNoTracking(),
                     user => user.UserId,
                     best => best.UserId,
-                    (user, best) => new UserBestRecordListItem
+                    (user, best) => new 
                     {
                         UserId = user.UserId,
                         Name = user.Name,
@@ -136,14 +113,25 @@ public class UserService : IUserService
                 };
             }
             
-            // TODO: [20221220-코드리뷰-28번] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요.
-            var dataList = query.OrderByDescending(p => p.UserId)
+            // TODO: [20221220-코드리뷰-28번] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요. - done
+            var dataList = await query
+                .Select(p => new UserBestRecordListItem
+                {
+                    UserId = p.UserId,
+                    Name = p.Name,
+                    Score = p.Score,
+                    Longest = p.Longest
+                }).ToListAsync();
+                
+            var dataPageList = dataList.OrderByDescending(p => p.UserId)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
 
-            var response = new GetUserBestRecordListResponse();
-            response.List = dataList;
+            var response = new GetUserBestRecordListResponse
+            {
+                List = dataPageList
+            };
 
             return (true, 0, response);
         }
@@ -311,26 +299,10 @@ public class UserService : IUserService
                 .Take(request.PageSize)
                 .ToList();
             
-            // var dataList = await _db.UsersByClub
-            //         .AsNoTracking()
-            //         .GroupBy(p => p.UserId)
-            //         .Where(p => p.Key == 1)
-            //         .Select(p => new UserClubInfoListItem
-            //         {
-            //             UserId = p.Key,
-            //             List = p
-            //                 .Where(s => request.Club.Contains(s.Club))
-            //                 .Select(s => new UserClubInfoItem
-            //             {
-            //                 Club = s.Club,
-            //                 Distance = s.Distance
-            //             }).ToList()
-            //         }).ToListAsync();
-            
-            // TODO: [20221220-코드리뷰-29번] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요.
+            // TODO: [20221220-코드리뷰-29번] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
             var response = new GetUserClubInfoListResponse
             {
-                List = dataList
+                List = dataPageList
             };
 
             return (true, 0, response);
