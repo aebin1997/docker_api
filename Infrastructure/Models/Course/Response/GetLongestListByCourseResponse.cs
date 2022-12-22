@@ -13,5 +13,7 @@ public class GetLongestListItem
 
 public class GetLongestItem
 {
+    public int Id { get; set; }
+
     public decimal Longest { get; set; }
 }

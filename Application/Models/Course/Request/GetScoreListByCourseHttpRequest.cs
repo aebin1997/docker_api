@@ -17,7 +17,7 @@ public class GetScoreListByCourseHttpRequest
     
     public int? ScoreRangeEnd { get; set; }
 
-    public GetScoreListByCourseRequest GetScoreListByCourse()
+    public GetScoreListByCourseRequest ToGetScoreListByCourse()
     {
         var result = new GetScoreListByCourseRequest()
         {

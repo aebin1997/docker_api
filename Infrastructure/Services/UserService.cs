@@ -76,8 +76,6 @@ public class UserService : IUserService
                 return (false, 10002, null);
             }
 
-            // TODO: [20221219-코드리뷰-17번-확인] select하는 쿼리는 비추적 쿼리로 작성하셔야합니다. - done
-            
             var query = _db.Users
                 .AsNoTracking()
                 .Join(
@@ -109,8 +107,7 @@ public class UserService : IUserService
                 };
             }
             
-            // TODO: [20221220-코드리뷰-28번-확인] Database에 조회 요청하는 부분이 잘못되었습니다. 원인을 찾은 후 수정해주세요. - done
-            // TODO: [20221221-코드리뷰-30번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            // TODO: [20221221-코드리뷰-30번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
             
             var dataPageList = await query
                 .OrderByDescending(p => p.UserId)
@@ -177,7 +174,7 @@ public class UserService : IUserService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
 
-            // TODO: [20221221-코드리뷰-31번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done 
+            // TODO: [20221221-코드리뷰-31번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done 
             
             var dataPageList = await query
                 .GroupBy(p => p.UserId)
@@ -259,7 +256,7 @@ public class UserService : IUserService
                 query = query.Where(p => request.Club.Contains(p.Club));
             }
             
-            // TODO: [20221221-코드리뷰-32번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            // TODO: [20221221-코드리뷰-32번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
             
             var dataPageList = await query
                 .GroupBy(p => p.UserId)
@@ -276,7 +273,6 @@ public class UserService : IUserService
                     }).ToList()
                 }).ToListAsync();
             
-          // TODO: [20221220-코드리뷰-29번-확인] 변수를 잘못 입력하셨습니다. 원인을 찾은 후 수정해주세요. - done
             var response = new GetUserClubInfoListResponse
             {
                 List = dataPageList

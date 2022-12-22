@@ -17,7 +17,7 @@ public class GetLongestListByCourseHttpRequest
     
     public int? LongestRangeEnd { get; set; }
 
-    public GetLongestListByCourseRequest GetLongestListByCourse()
+    public GetLongestListByCourseRequest ToGetLongestListByCourse()
     {
         var result = new GetLongestListByCourseRequest()
         {

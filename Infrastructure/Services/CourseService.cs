@@ -60,7 +60,7 @@ public class CourseService : ICourseService
                 return (false, 20002, null);
             }
 
-            // TODO: [20221221-코드리뷰-39번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            // TODO: [20221221-코드리뷰-39번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
 
             var query = _db.UsersByCourse
                 .AsNoTracking();
@@ -76,6 +76,7 @@ public class CourseService : ICourseService
                     p.Longest >= request.LongestRangeStart && p.Longest <= request.LongestRangeEnd);
             }
 
+            // TODO: [20221222-코드리뷰-41번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요.
             var dataPageList = await query
                 .GroupBy(p => p.CourseId)
                 .OrderByDescending(p => p.Key)
@@ -86,6 +87,7 @@ public class CourseService : ICourseService
                     CourseId = p.Key,
                     List = p.Select(s => new GetLongestItem
                     {
+                        Id = s.UserByCourseId,
                         Longest = s.Longest
                     }).ToList()
                 }).ToListAsync();
@@ -155,8 +157,8 @@ public class CourseService : ICourseService
                     p.Score >= request.ScoreRangeStart && p.Score <= request.ScoreRangeEnd);
             }
 
-            // TODO: [20221221-코드리뷰-40번] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
-
+            // TODO: [20221221-코드리뷰-40번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
+            // TODO: [20221222-코드리뷰-42번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요.
             var dataPageList = await query
                 .GroupBy(p => p.CourseId)
                 .OrderByDescending(p => p.Key)

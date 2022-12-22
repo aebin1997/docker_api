@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Application.Models.Statistics;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace Application.Controllers;
 
@@ -9,6 +10,8 @@ namespace Application.Controllers;
 [ApiController]
 public class StatisticsController : ControllerBase
 {
+    // TODO: [20221222-코드리뷰-43번] ActionMethod Route, HTTP Method 통합해주세요
+
     // Log
     private readonly ILogger<UserController> _logger;
     
@@ -21,7 +24,20 @@ public class StatisticsController : ControllerBase
     
         _statistics = statistics;
     }
-    
+
+
+    [HttpGet("test")]
+    public async Task<IActionResult> test()
+    {
+        var responseModel = new JObject();
+        responseModel.Add("2019", "123");
+        responseModel.Add("2020", 123);
+        responseModel.Add("test1", "123");
+        responseModel.Add("test2", 123);
+        
+        return StatusCode(StatusCodes.Status200OK, responseModel); 
+    }
+
     [Route("course/user/score/range/{userId}")]
     [HttpGet]
     public async Task<ActionResult> GetUserScoreRangeByCourse([FromRoute] int userId)
