@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Application.Models.Course;
 using Application.Models.Statistics;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using Serilog.Context;
 
 namespace Application.Controllers;
 
@@ -10,7 +12,7 @@ namespace Application.Controllers;
 [ApiController]
 public class StatisticsController : ControllerBase
 {
-    // TODO: [20221222-코드리뷰-43번] ActionMethod Route, HTTP Method 통합해주세요
+    // TODO: [20221222-코드리뷰-43번] ActionMethod Route, HTTP Method 통합해주세요 - done
 
     // Log
     private readonly ILogger<UserController> _logger;
@@ -25,29 +27,15 @@ public class StatisticsController : ControllerBase
         _statistics = statistics;
     }
 
-
-    [HttpGet("test")]
-    public async Task<IActionResult> test()
+    [HttpGet("users/{userId}/course-score-range")]
+    public async Task<ActionResult> GetUserScoreRangeByCourse([FromRoute] int userId, [FromQuery] GetUserScoreRangeByCourseHttpRequest model)
     {
-        var responseModel = new JObject();
-        responseModel.Add("2019", "123");
-        responseModel.Add("2020", 123);
-        responseModel.Add("test1", "123");
-        responseModel.Add("test2", 123);
-        
-        return StatusCode(StatusCodes.Status200OK, responseModel); 
-    }
-
-    [Route("course/user/score/range/{userId}")]
-    [HttpGet]
-    public async Task<ActionResult> GetUserScoreRangeByCourse([FromRoute] int userId)
-    {
-        var result = await _statistics.GetUserScoreRangeByCourse(userId);
+        var result = await _statistics.GetUserScoreRangeByCourse(model.ToGetUserScoreRangeByCourse(userId));
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30001, 30002 };
+            var serverErrorCode = new int[] { 3000 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -59,8 +47,13 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
-                
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model)
+                       }))
+                {
+                    _logger.LogError("코스별로 최고 스코어 데이터 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -70,16 +63,15 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/user/longest/range/{userId}")]
-    [HttpGet]
-    public async Task<ActionResult> GetLongestListByCourse([FromRoute] int userId)
+    [HttpGet("users/{userId}/course-longest-range")]
+    public async Task<ActionResult> GetUserLongestRangeByCourse([FromRoute] int userId, [FromQuery] GetUserLongestRangeByCourseHttpRequest model)
     {
-        var result = await _statistics.GetUserLongestRangeByCourse(userId);
+        var result = await _statistics.GetUserLongestRangeByCourse(model.ToGetUserLongestRangeByCourse(userId));
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30011, 30012 };
+            var serverErrorCode = new int[] { 3001 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -91,7 +83,13 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("코스별로 최고 롱기스트 거리 데이터 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -102,16 +100,15 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count/{courseId}")]
-    [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCount([FromRoute] int courseId)
+    [HttpGet("courses/rounding-count")]
+    public async Task<ActionResult> GetCourseRoundingCount([FromQuery] GetCourseRoundingCountHttpRequest model)
     {
-        var result = await _statistics.GetCourseRoundingCount(courseId);
+        var result = await _statistics.GetCourseRoundingCount(model.ToGetCourseRoundingCount());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30021, 30022};
+            var serverErrorCode = new int[] { 3002 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -123,7 +120,13 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("특정 코스의 라운딩 카운트 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -134,16 +137,15 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count/year/{courseId}")]
-    [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCountByYear([FromRoute] int courseId)
+    [HttpGet("courses/rounding-count/year")]
+    public async Task<ActionResult> GetCourseRoundingCountByYear([FromQuery] GetCourseRoundingCountByYearHttpRequest model)
     {
-        var result = await _statistics.GetCourseRoundingCountByYear(courseId);
+        var result = await _statistics.GetCourseRoundingCountByYear(model.ToGetCourseRoundingCountByYear());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30031, 30032 };
+            var serverErrorCode = new int[] { 3003 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -155,7 +157,13 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("특정 코스의 연도별 라운딩 카운트 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -165,16 +173,15 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/rounding/count/month/{courseId}")]
-    [HttpGet]
-    public async Task<ActionResult> GetCourseRoundingCountByMonth([FromRoute] int courseId)
+    [HttpGet("courses/rounding-count/month")]
+    public async Task<ActionResult> GetCourseRoundingCountByMonth([FromQuery] GetCourseRoundingCountByMonthHttpRequest model)
     {
-        var result = await _statistics.GetCourseRoundingCountByMonth(courseId);
+        var result = await _statistics.GetCourseRoundingCountByMonth(model.ToGetCourseRoundingCountByMonth());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30041, 30042 };
+            var serverErrorCode = new int[] { 3004 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -186,27 +193,32 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("특정 코스의 월별 라운딩 카운트 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     
         var responseModel = new GetCourseRoundingCountByMonthHttpResponse(result.response);
-        
+
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/bestScore")]
-    [HttpGet]
-    public async Task<ActionResult> GetBestScoreByCourse()
+    [HttpGet("courses/best-score")]
+    public async Task<ActionResult> GetBestScoreByCourse([FromQuery] GetBestScoreByCourseHttpRequest model)
     {
-        var result = await _statistics.GetBestScoreByCourse();
+        var result = await _statistics.GetBestScoreByCourse(model.ToGetBestScoreByCourse());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30051, 30052 };
+            var serverErrorCode = new int[] { 3005 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -218,27 +230,32 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("코스별로 최고 스코어 데이터 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     
-        var responseModel = new GetBestScoreByCourseHttpResponse(result.response.List);
+        var responseModel = new GetBestScoreByCourseHttpResponse(result.response);
         
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [Route("course/longest")]
-    [HttpGet]
-    public async Task<ActionResult> GetLongestByCourse()
+    [HttpGet("courses/longest")]
+    public async Task<ActionResult> GetLongestByCourse([FromQuery] GetLongestByCourseHttpRequest model)
     {
-        var result = await _statistics.GetLongestByCourse();
+        var result = await _statistics.GetLongestByCourse(model.ToGetLongestByCourse());
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 1002 };
-            var serverErrorCode = new int[] { 1003, 1004 }; 
+            var badRequestErrorCode = new int[] { 30061, 30062 };
+            var serverErrorCode = new int[] { 3006 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
             {
@@ -250,13 +267,19 @@ public class StatisticsController : ControllerBase
             }
             else
             {
-                _logger.LogError("회원 상세 조회에서 정의되지 않은 에러코드가 반환됨"); 
+                using (LogContext.PushProperty("JsonData", new
+                       {
+                           model = JObject.FromObject(model),
+                       }))
+                {
+                    _logger.LogError("코스별로 최고 롱기스트 거리 데이터 조회 중 정의되지 않은 에러코드가 반환됨"); 
+                }   
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     
-        var responseModel = new GetLongestByCourseHttpResponse(result.response.List);
+        var responseModel = new GetLongestByCourseHttpResponse(result.response);
         
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }

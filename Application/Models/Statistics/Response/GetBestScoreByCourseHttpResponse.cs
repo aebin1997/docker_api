@@ -3,10 +3,15 @@ namespace Application.Models.Statistics;
 
 public class GetBestScoreByCourseHttpResponse
 {
-    public List<GetBestScoreByCourseItem> List { get; set; }
+    public List<GetBestScoreByCourseItem> CourseBestScoreList { get; set; }
     
-    public GetBestScoreByCourseHttpResponse(List<GetBestScoreByCourseItem> list)
+    // public GetBestScoreByCourseHttpResponse(List<GetBestScoreByCourseItem> list)
+    // {
+    //     CourseBestScoreList = list;
+    // } 
+    
+    public GetBestScoreByCourseHttpResponse(GetBestScoreByCourseResponse response)
     {
-        List = list;
+        CourseBestScoreList = response.CourseBestScoreList;
     } 
 }

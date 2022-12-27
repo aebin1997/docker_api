@@ -63,7 +63,7 @@ public class UserController : ControllerBase
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
-        var result = await _user.GetUserCourseHistoryList(model.GetUserCourseHistoryList());
+        var result = await _user.GetUserCourseHistoryList(model.ToGetUserCourseHistoryList());
         
         if (result.isSuccess == false)
         { 
@@ -102,7 +102,7 @@ public class UserController : ControllerBase
     {
         model.Page = model.Page == 0 ? 1 : model.Page;
         
-        var result = await _user.GetUserClubInfoList(model.GetUserClubInfoList());
+        var result = await _user.GetUserClubInfoList(model.ToGetUserClubInfoList());
         
         if (result.isSuccess == false)
         { 

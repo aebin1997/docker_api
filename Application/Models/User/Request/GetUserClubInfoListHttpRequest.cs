@@ -15,7 +15,7 @@ public class GetUserClubInfoListHttpRequest
     
     public string[] Club { get; set; }
     
-    public GetUserClubInfoListRequest GetUserClubInfoList()
+    public GetUserClubInfoListRequest ToGetUserClubInfoList()
     {
         return new GetUserClubInfoListRequest()
         {

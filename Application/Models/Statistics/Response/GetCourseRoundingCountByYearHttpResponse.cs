@@ -21,12 +21,10 @@ namespace Application.Models.Statistics;
 
 public class GetCourseRoundingCountByYearHttpResponse
 {
-    public int CourseId { get; set; }
-    public List<GetCourseRoundingCountByYearListItem> List { get; set; }
-
+    public List<GetCourseRoundingCountByYearListItem> RoundingCountList { get; set; }
+    
     public GetCourseRoundingCountByYearHttpResponse(GetCourseRoundingCountByYearResponse response)
     {
-        CourseId = response.CourseId;
-        List = response.List;
-    }
+        RoundingCountList = response.RoundingCountList;
+    } 
 }

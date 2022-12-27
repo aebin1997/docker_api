@@ -2,7 +2,7 @@ namespace Infrastructure.Models.Statistics;
 
 public class GetLongestByCourseResponse
 {
-    public List<GetLongestByCourseItem> List { get; set; }
+    public List<GetLongestByCourseItem> CourseLongestList { get; set; }
 }
 
 public class GetLongestByCourseItem

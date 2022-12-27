@@ -3,11 +3,11 @@ namespace Application.Models.Statistics;
 
 public class GetLongestByCourseHttpResponse
 {
-    public List<GetLongestByCourseItem> List { get; set; }
+    public List<GetLongestByCourseItem> CourseBestLongestList { get; set; }
     
-    public GetLongestByCourseHttpResponse(List<GetLongestByCourseItem> list)
+    public GetLongestByCourseHttpResponse(GetLongestByCourseResponse response)
     {
-        List = list;
+        CourseBestLongestList = response.CourseLongestList;
     }
 }
 

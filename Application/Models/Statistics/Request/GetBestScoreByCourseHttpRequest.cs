@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using Infrastructure.Models.User;
+using Infrastructure.Models.Statistics;
 
-namespace Application.Models.User.Request;
+namespace Application.Models.Statistics;
 
-public class GetUserCourseHistoryListHttpRequest
+public class GetBestScoreByCourseHttpRequest
 {
     [Required]
     public int Page { get; set; }
@@ -11,18 +11,17 @@ public class GetUserCourseHistoryListHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int? UserId { get; set; }
-    
     public int[] CourseId { get; set; }
 
-    public GetUserCourseHistoryListRequest ToGetUserCourseHistoryList()
+    public GetBestScoreByCourseRequest ToGetBestScoreByCourse()
     {
-        return new GetUserCourseHistoryListRequest()
+        var result = new  GetBestScoreByCourseRequest()
         {
             Page = Page,
             PageSize = PageSize,
-            UserId = UserId,
             CourseId = CourseId
         };
+
+        return result;
     }
 }
