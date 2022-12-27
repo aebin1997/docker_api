@@ -36,7 +36,7 @@ public class StatisticsService : IStatisticsService
         _db = db;
     }
 
-    public static int UnixTimeToMonth(ulong unixTime)
+    public static int UnixTimeToMonth(ulong unixTime) //TODO: 얘는 왜 static 을 붙여야하는지
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             
@@ -152,7 +152,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("특정 회원의 코스 별 롱기스트 거리 범위 카운트: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30011, null);
@@ -165,7 +165,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("특정 회원의 코스 별 롱기스트 거리 범위 카운트: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30012, null);
@@ -215,7 +215,7 @@ public class StatisticsService : IStatisticsService
                        request = JObject.FromObject(request) 
                    }))
             {
-                _logger.LogError(ex, "특정 회원의 코스별 롱기스트 거리 범위 카운트 조회 중 오류 발생");
+                _logger.LogError(ex, "특정 회원의 코스 별 롱기스트 거리 범위 카운트 조회 중 오류 발생");
             }
 
             return (false, 3001, null);
@@ -233,7 +233,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("특정 코스의 라운딩 카운트: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30021, null);
@@ -246,7 +246,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("특정 코스의 라운딩 카운트: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30022, null);
@@ -303,7 +303,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("특정 코스의 연도별 라운딩 카운트: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30031, null);
@@ -316,7 +316,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("특정 코스의 연도별 라운딩 카운트: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30032, null);
@@ -329,7 +329,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 년도 범위 오류");
+                    _logger.LogInformation("특정 코스의 연도별 라운딩 카운트: 년도 범위 오류");
                 }
                 
                 return (false, 30033, null);
@@ -346,10 +346,7 @@ public class StatisticsService : IStatisticsService
             var convertToYear = await query
                 .Select(p => new 
                 {
-                    UserId = p.UserId,
                     CourseId = p.CourseId,
-                    Score = p.Score,
-                    Longest = p.Longest,
                     UpdatedYear = UnixTimeToYear(p.Updated)
                 }).ToListAsync();
 
@@ -411,7 +408,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30041, null);
@@ -424,7 +421,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30042, null);
@@ -437,7 +434,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 년도 범위 오류");
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 년도 범위 오류");
                 }
                 
                 return (false, 30043, null);
@@ -450,7 +447,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 월 범위 오류");
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 월 범위 오류");
                 }
                 
                 return (false, 30044, null);
@@ -467,10 +464,7 @@ public class StatisticsService : IStatisticsService
             var convertToYearMonth = await query
                 .Select(p => new
                 {
-                    UserId = p.UserId,
                     CourseId = p.CourseId,
-                    Score = p.Score,
-                    Longest = p.Longest,
                     UpdatedYear = UnixTimeToYear(p.Updated),
                     UpdatedMonth = UnixTimeToMonth(p.Updated)
                 })
@@ -546,7 +540,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("코스 별 최고 스코어 데이터: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30051, null);
@@ -559,7 +553,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("코스 별 최고 스코어 데이터: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30052, null);
@@ -598,7 +592,7 @@ public class StatisticsService : IStatisticsService
                        request = JObject.FromObject(request)
                    }))
             {
-                _logger.LogError(ex, "코스별로 최고 스코어 데이터 조회 중 오류 발생");
+                _logger.LogError(ex, "코스 별 최고 스코어 데이터 조회 중 오류 발생");
             }
 
             return (false, 3005, null);
@@ -616,7 +610,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 값이 정수가 아님");
+                    _logger.LogInformation("코스 별 최고 롱기스트 거리 데이터: 페이지 값이 정수가 아님");
                 }
                 
                 return (false, 30061, null);
@@ -629,7 +623,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("회원 별 최고 기록: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("코스 별 최고 롱기스트 거리 데이터: 페이지 사이즈가 범위를 벋어남");
                 }
                 
                 return (false, 30062, null);
@@ -668,7 +662,7 @@ public class StatisticsService : IStatisticsService
                        request = JObject.FromObject(request)
                    }))
             {
-                _logger.LogError(ex, "코스별로 최고 롱기스트 거리 데이터 조회 중 오류 발생");
+                _logger.LogError(ex, "코스 별 최고 롱기스트 거리 데이터 조회 중 오류 발생");
             }
 
             return (false, 3006, null);
