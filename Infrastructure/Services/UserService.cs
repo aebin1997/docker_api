@@ -37,7 +37,8 @@ public class UserService : IUserService
         _db = db;
     }
     
-    public DateTime UnixTimeToDateTime(ulong unixTime)
+    // 클래스 내부에서만 사용하도록 private 으로 선언
+    private static DateTime UnixTimeToDateTime(ulong unixTime)
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             

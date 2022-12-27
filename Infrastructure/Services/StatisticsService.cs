@@ -36,7 +36,7 @@ public class StatisticsService : IStatisticsService
         _db = db;
     }
 
-    public static int UnixTimeToMonth(ulong unixTime) //TODO: 얘는 왜 static 을 붙여야하는지
+    private static int UnixTimeToMonth(ulong unixTime) //TODO: 얘는 왜 static 을 붙여야하는지
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             
@@ -47,7 +47,7 @@ public class StatisticsService : IStatisticsService
         return month;
     }
     
-    public static int UnixTimeToYear(ulong unixTime)
+    private static int UnixTimeToYear(ulong unixTime)
     {
         DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             
