@@ -322,6 +322,19 @@ public class StatisticsService : IStatisticsService
                 return (false, 30032, null);
             }
 
+            if (request.YearRangeStart > request.YearRangeEnd)
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("회원 별 최고 기록: 년도 범위 오류");
+                }
+                
+                return (false, 30033, null);
+            }
+
             var query = _db.UsersByCourse
                 .AsNoTracking();
 
@@ -360,7 +373,9 @@ public class StatisticsService : IStatisticsService
                         {
                             Year = s.Key,
                             Count = s.Count()
-                        }).ToDictionary(t => t.Year, t=> t.Count)
+                        })
+                        .OrderByDescending(p => p.Year)
+                        .ToDictionary(t => t.Year, t=> t.Count)
                 })
                 .ToList();
 
@@ -415,6 +430,32 @@ public class StatisticsService : IStatisticsService
                 return (false, 30042, null);
             }
             
+            if (request.YearRangeStart > request.YearRangeEnd)
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("회원 별 최고 기록: 년도 범위 오류");
+                }
+                
+                return (false, 30043, null);
+            }
+            
+            if (request.MonthRangeStart > request.MonthRangeEnd)
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("회원 별 최고 기록: 월 범위 오류");
+                }
+                
+                return (false, 30044, null);
+            }
+            
             var query = _db.UsersByCourse
                 .AsNoTracking();
 
@@ -464,8 +505,12 @@ public class StatisticsService : IStatisticsService
                                 {
                                     Month = t.Key,
                                     Count = t.Count()
-                                }).ToDictionary(p => p.Month, p=> p.Count)
-                        }).ToDictionary(p => p.Year, p => p.MonthList)
+                                })
+                                .OrderByDescending(t => t.Month)
+                                .ToDictionary(p => p.Month, p=> p.Count)
+                        })
+                        .OrderByDescending(p => p.Year)
+                        .ToDictionary(p => p.Year, p => p.MonthList)
                 })
                 .ToList();
 

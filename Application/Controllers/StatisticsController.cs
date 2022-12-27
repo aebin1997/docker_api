@@ -144,7 +144,7 @@ public class StatisticsController : ControllerBase
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 30031, 30032 };
+            var badRequestErrorCode = new int[] { 30031, 30032, 30033 };
             var serverErrorCode = new int[] { 3003 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
@@ -180,7 +180,7 @@ public class StatisticsController : ControllerBase
         
         if (result.isSuccess == false)
         { 
-            var badRequestErrorCode = new int[] { 30041, 30042 };
+            var badRequestErrorCode = new int[] { 30041, 30042, 30043, 30044 };
             var serverErrorCode = new int[] { 3004 }; 
             
             if (badRequestErrorCode.Contains(result.errorCode))
