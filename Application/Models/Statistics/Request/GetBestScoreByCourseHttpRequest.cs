@@ -11,7 +11,7 @@ public class GetBestScoreByCourseHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
 
     public GetBestScoreByCourseRequest ToGetBestScoreByCourse()
     {

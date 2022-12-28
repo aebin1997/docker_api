@@ -12,7 +12,7 @@ public class GetUserScoreRangeByCourseHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
 
     public GetUserScoreRangeByCourseRequest ToGetUserScoreRangeByCourse(int userId)
     {

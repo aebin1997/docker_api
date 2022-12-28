@@ -11,7 +11,7 @@ public class GetCourseRoundingCountByYearHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
     
     public int? YearRangeStart { get; set; }
     

@@ -82,7 +82,7 @@ public class StatisticsService : IStatisticsService
                            request = JObject.FromObject(request)
                        }))
                 {
-                    _logger.LogInformation("특정 회원의 코스별 스코어 범위 카운트: 페이지 사이즈가 범위를 벋어남");
+                    _logger.LogInformation("특정 회원의 코스별 스코어 범위 카운트: 페이지 사이즈가 범위를 벗어남");
                 }
                 
                 return (false, 30002, null);
@@ -191,7 +191,7 @@ public class StatisticsService : IStatisticsService
                     LongestRange = new LongestRangeItem
                     {
                         Longest160To179 = p.Count(p => p.Longest >= 160 && p.Longest < 180),
-                        Longest180To199 = p.Count(p => p.Longest >= 180 && p.Score < 200),
+                        Longest180To199 = p.Count(p => p.Longest >= 180 && p.Longest < 200),
                         Longest200To219 = p.Count(p => p.Longest >= 200 && p.Longest < 220),
                         Longest220To239 = p.Count(p => p.Longest >= 220 && p.Longest < 240),
                         Longest240To259 = p.Count(p => p.Longest >= 240 && p.Longest < 260),
@@ -343,21 +343,22 @@ public class StatisticsService : IStatisticsService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
 
-            var convertToYear = await query
-                .Select(p => new 
+            if (request.YearRangeStart != null && request.YearRangeEnd != null)
+            {
+                var searchStartUnixTime = (ulong) new DateTimeOffset(request.YearRangeStart.Value, 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+                var searchEndUnixTime = (ulong) new DateTimeOffset((request.YearRangeEnd.Value + 1), 1, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+                
+                query = query.Where(p => p.Updated >= searchStartUnixTime && p.Updated < searchEndUnixTime);
+            }
+
+            var result = await query.ToListAsync();
+            
+            var dataPageList = result
+                .Select(p => new
                 {
                     CourseId = p.CourseId,
                     UpdatedYear = UnixTimeToYear(p.Updated)
-                }).ToListAsync();
-
-            var dataList = convertToYear;
-
-            if (request.YearRangeStart != null && request.YearRangeEnd != null)
-            {
-                dataList = dataList.Where(p => p.UpdatedYear >= request.YearRangeStart && p.UpdatedYear <= request.YearRangeEnd).ToList();
-            }
-               
-            var dataPageList = dataList
+                })
                 .GroupBy(p => p.CourseId)
                 .OrderByDescending(p => p.Key)
                 .Skip((request.Page - 1) * request.PageSize)
@@ -460,6 +461,8 @@ public class StatisticsService : IStatisticsService
             {
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
+            
+            // TODO: [20221228-코드리뷰-44번] 코스 연도별 라운딩 통계 조회 로직처럼 수정을 진행해보세요. 
 
             var convertToYearMonth = await query
                 .Select(p => new

@@ -11,7 +11,7 @@ public class GetCourseRoundingCountHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
 
     public GetCourseRoundingCountRequest ToGetCourseRoundingCount()
     {

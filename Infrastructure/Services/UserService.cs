@@ -108,8 +108,6 @@ public class UserService : IUserService
                 };
             }
             
-            // TODO: [20221221-코드리뷰-30번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
-            
             var dataPageList = await query
                 .OrderByDescending(p => p.UserId)
                 .Skip((request.Page - 1) * request.PageSize)
@@ -175,8 +173,6 @@ public class UserService : IUserService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
 
-            // TODO: [20221221-코드리뷰-31번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done 
-            
             var dataPageList = await query
                 .GroupBy(p => p.UserId)
                 .OrderByDescending(p => p.Key)
@@ -256,8 +252,6 @@ public class UserService : IUserService
             {
                 query = query.Where(p => request.Club.Contains(p.Club));
             }
-            
-            // TODO: [20221221-코드리뷰-32번-확인] Database에 데이터 요청을 보낼 때 페이징 조건도 포함하여 전송되도록 로직을 수정해주세요. - done
             
             var dataPageList = await query
                 .GroupBy(p => p.UserId)

@@ -11,7 +11,7 @@ public class GetUserLongestRangeByCourseHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
 
     public GetUserLongestRangeByCourseRequest ToGetUserLongestRangeByCourse(int userId)
     {

@@ -12,7 +12,7 @@ namespace Application.Controllers;
 [ApiController]
 public class StatisticsController : ControllerBase
 {
-    // TODO: [20221222-코드리뷰-43번] ActionMethod Route, HTTP Method 통합해주세요 - done
+    // TODO: [20221222-코드리뷰-43번-확인] ActionMethod Route, HTTP Method 통합해주세요 - done
 
     // Log
     private readonly ILogger<UserController> _logger;
@@ -247,7 +247,7 @@ public class StatisticsController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, responseModel);          
     }
     
-    [HttpGet("courses/longest")]
+    [HttpGet("courses/best-longest")]
     public async Task<ActionResult> GetLongestByCourse([FromQuery] GetLongestByCourseHttpRequest model)
     {
         var result = await _statistics.GetLongestByCourse(model.ToGetLongestByCourse());
