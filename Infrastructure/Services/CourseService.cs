@@ -74,20 +74,17 @@ public class CourseService : ICourseService
                     p.Longest >= request.LongestRangeStart && p.Longest <= request.LongestRangeEnd);
             }
 
-            // TODO: [20221222-코드리뷰-41번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요.
+            // TODO: [20221222-코드리뷰-41번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요. - done
+            
             var dataPageList = await query
-                .GroupBy(p => p.CourseId)
-                .OrderByDescending(p => p.Key)
+                .OrderByDescending(p => p.UserByCourseId)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .Select(p => new GetLongestListItem
                 {
-                    CourseId = p.Key,
-                    List = p.Select(s => new GetLongestItem
-                    {
-                        Id = s.UserByCourseId,
-                        Longest = s.Longest
-                    }).ToList()
+                    RoundId = p.UserByCourseId,
+                    CourseId = p.CourseId,
+                    Longest = p.Longest
                 }).ToListAsync();
             
             var response = new GetLongestListByCourseResponse
@@ -155,19 +152,17 @@ public class CourseService : ICourseService
                     p.Score >= request.ScoreRangeStart && p.Score <= request.ScoreRangeEnd);
             }
 
-            // TODO: [20221222-코드리뷰-42번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요.
+            // TODO: [20221222-코드리뷰-42번] 노션에 정의해드린 Response Data Example과 동일하게 Response를 변경해주세요. - done
+            
             var dataPageList = await query
-                .GroupBy(p => p.CourseId)
-                .OrderByDescending(p => p.Key)
+                .OrderByDescending(p => p.UserByCourseId)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .Select(p => new GetScoreListItem
                 {
-                    CourseId = p.Key,
-                    List = p.Select(s => new GetScoreItem
-                    {
-                        Score = s.Score
-                    }).ToList()
+                    RoundId = p.UserByCourseId,
+                    CourseId = p.CourseId,
+                    Score = p.Score
                 }).ToListAsync();
             
             var response = new GetScoreListByCourseResponse

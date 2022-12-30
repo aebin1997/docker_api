@@ -36,17 +36,7 @@ public class UserService : IUserService
 
         _db = db;
     }
-    
-    // 클래스 내부에서만 사용하도록 private 으로 선언
-    private static DateTime UnixTimeToDateTime(ulong unixTime)
-    {
-        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            
-        dateTime = dateTime.AddMilliseconds(unixTime).ToUniversalTime();
-    
-        return dateTime;
-    }
-    
+
     public async Task<(bool isSuccess, int errorCode, GetUserBestRecordListResponse response)> GetUserBestRecordList(GetUserBestRecordListRequest request)
     {
         try
@@ -312,8 +302,8 @@ public class UserService : IUserService
                 {
                     UserId = p.UserId,
                     Username = p.Username,
-                    Created = UnixTimeToDateTime(p.Created),
-                    Updated = UnixTimeToDateTime(p.Updated),
+                    Created = UnixTimeHandler.UnixTimeToDateTime(p.Created),
+                    Updated = UnixTimeHandler.UnixTimeToDateTime(p.Updated),
                     Deleted = p.Deleted
                 })
                 .ToListAsync();
@@ -390,8 +380,8 @@ public class UserService : IUserService
             details.Username = data.Username;
             details.Password = data.Password;
             details.Name = data.Name;
-            details.Created = UnixTimeToDateTime(data.Created);
-            details.Updated = UnixTimeToDateTime(data.Updated);
+            details.Created = UnixTimeHandler.UnixTimeToDateTime(data.Created);
+            details.Updated = UnixTimeHandler.UnixTimeToDateTime(data.Updated);
             details.Deleted = data.Deleted;
 
             return (true, 0, details);

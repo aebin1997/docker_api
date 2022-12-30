@@ -1,3 +1,4 @@
+#nullable enable
 using System.ComponentModel.DataAnnotations;
 using Infrastructure.Models.User;
 
@@ -11,7 +12,7 @@ public class GetUserBestRecordListHttpRequest
     [Required]
     public int PageSize { get; set; }
     
-    public int[] UserId { get; set; }
+    public int[]? UserId { get; set; }
     
     [Range (1,2)]
     public int? BestRecordType { get; set; }

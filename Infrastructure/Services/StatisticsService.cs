@@ -1,7 +1,5 @@
-using System.Reflection;
 using Infrastructure.Context;
 using Infrastructure.Models.Statistics;
-using Infrastructure.Models.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -36,28 +34,6 @@ public class StatisticsService : IStatisticsService
         _db = db;
     }
 
-    private static int UnixTimeToMonth(ulong unixTime) //TODO: 얘는 왜 static 을 붙여야하는지
-    {
-        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            
-        dateTime = dateTime.AddMilliseconds(unixTime).ToUniversalTime();
-
-        int month = dateTime.Month;
-
-        return month;
-    }
-    
-    private static int UnixTimeToYear(ulong unixTime)
-    {
-        DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            
-        dateTime = dateTime.AddMilliseconds(unixTime).ToUniversalTime();
-
-        int year = dateTime.Year;
-        
-        return year;
-    }
-    
     public async Task<(bool isSuccess, int errorCode, GetUserScoreRangeByCourseResponse response)> GetUserScoreRangeByCourse(GetUserScoreRangeByCourseRequest request)
     {
         try
@@ -357,7 +333,7 @@ public class StatisticsService : IStatisticsService
                 .Select(p => new
                 {
                     CourseId = p.CourseId,
-                    UpdatedYear = UnixTimeToYear(p.Updated)
+                    UpdatedYear = UnixTimeHandler.UnixTimeToYear(p.Updated)
                 })
                 .GroupBy(p => p.CourseId)
                 .OrderByDescending(p => p.Key)
@@ -395,6 +371,136 @@ public class StatisticsService : IStatisticsService
             }
 
             return (false, 3003, null);
+        }
+    }
+
+    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth2(GetCourseRoundingCountByMonthRequest request)
+    {
+        try
+        {
+            if (request.Page <= 0) 
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 값이 정수가 아님");
+                }
+                
+                return (false, 30041, null);
+            }
+            
+            if (request.PageSize is not (10 or 20 or 50)) 
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 사이즈가 범위를 벋어남");
+                }
+                
+                return (false, 30042, null);
+            }
+            
+            if (request.YearRangeStart > request.YearRangeEnd)
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 년도 범위 오류");
+                }
+                
+                return (false, 30043, null);
+            }
+
+            var query = _db.UsersByCourse
+                .AsNoTracking();
+
+            if (request.CourseId != null)
+            {
+                query = query.Where(p => request.CourseId.Contains(p.CourseId));
+            }
+            
+            if (request.YearRangeStart != null && request.YearRangeEnd != null && request.MonthRangeStart != null && request.MonthRangeEnd != null)
+            {
+                var searchStartUnixTime = (ulong) new DateTimeOffset(request.YearRangeStart.Value, request.MonthRangeStart.Value, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+
+                var yearRangeEnd = request.YearRangeEnd.Value;
+                var monthRangeEnd = request.MonthRangeEnd.Value;
+
+                if (monthRangeEnd == 12)
+                {
+                    yearRangeEnd += 1;
+                    monthRangeEnd = 1;
+                }
+                else
+                {
+                    monthRangeEnd += 1;
+                }
+
+                var searchEndUnixTime = (ulong) new DateTimeOffset(yearRangeEnd, monthRangeEnd, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+                
+                query = query.Where(p => p.Updated >= searchStartUnixTime && p.Updated < searchEndUnixTime);
+            }
+            
+            // TODO: [20221228-코드리뷰-44번] 코스 연도별 라운딩 통계 조회 로직처럼 수정을 진행해보세요. - done
+
+            var result = await query.ToListAsync();
+
+            var dataPageList = result
+                .Select(p => new
+                {
+                    CourseId = p.CourseId,
+                    UpdatedYear = UnixTimeHandler.UnixTimeToYear(p.Updated),
+                    UpdatedMonth = UnixTimeHandler.UnixTimeToMonth(p.Updated)
+                })
+                .GroupBy(p => p.CourseId)
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => new GetCourseRoundingCountByMonthListItem
+                {
+                    CourseId = p.Key,
+                    Count = p.GroupBy(p => p.UpdatedYear)
+                        .Select(s => new
+                        {
+                            Year = s.Key,
+                            MonthList = s.GroupBy(s => s.UpdatedMonth)
+                                .Select(t => new
+                                {
+                                    Month = t.Key,
+                                    Count = t.Count()
+                                })
+                                .OrderByDescending(t => t.Month)
+                                .ToDictionary(p => p.Month, p=> p.Count)
+                        })
+                        .OrderByDescending(p => p.Year)
+                        .ToDictionary(p => p.Year, p => p.MonthList)
+                })
+                .ToList();
+
+            var response = new GetCourseRoundingCountByMonthResponse
+            {
+                RoundingCountList = dataPageList
+            };
+
+            return (true, 0, response);
+        }
+        catch (Exception ex)
+        {
+            using (LogContext.PushProperty("JsonData", new
+                   {
+                       request = JObject.FromObject(request)
+                   }))
+            {
+                _logger.LogError(ex, "특정 코스의 월별 라운딩 카운트 조회 중 오류 발생");
+            }
+
+            return (false, 3004, null);
         }
     }
 
@@ -440,20 +546,7 @@ public class StatisticsService : IStatisticsService
                 
                 return (false, 30043, null);
             }
-            
-            if (request.MonthRangeStart > request.MonthRangeEnd)
-            {
-                using (LogContext.PushProperty("LogProperty", new 
-                       {
-                           request = JObject.FromObject(request)
-                       }))
-                {
-                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 월 범위 오류");
-                }
-                
-                return (false, 30044, null);
-            }
-            
+
             var query = _db.UsersByCourse
                 .AsNoTracking();
 
@@ -462,30 +555,37 @@ public class StatisticsService : IStatisticsService
                 query = query.Where(p => request.CourseId.Contains(p.CourseId));
             }
             
-            // TODO: [20221228-코드리뷰-44번] 코스 연도별 라운딩 통계 조회 로직처럼 수정을 진행해보세요. 
+            if (request.YearRangeStart != null && request.YearRangeEnd != null && request.MonthRangeStart != null && request.MonthRangeEnd != null)
+            {
+                var searchStartUnixTime = (ulong) new DateTimeOffset(request.YearRangeStart.Value, request.MonthRangeStart.Value, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
 
-            var convertToYearMonth = await query
+                var yearRangeEnd = request.YearRangeEnd.Value;
+                var monthRangeEnd = request.MonthRangeEnd.Value;
+
+                if (monthRangeEnd == 12)
+                {
+                    yearRangeEnd += 1;
+                    monthRangeEnd = 1;
+                }
+                else
+                {
+                    monthRangeEnd += 1;
+                }
+
+                var searchEndUnixTime = (ulong) new DateTimeOffset(yearRangeEnd, monthRangeEnd, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+                
+                query = query.Where(p => p.Updated >= searchStartUnixTime && p.Updated < searchEndUnixTime);
+            }
+            
+            var result = await query.ToListAsync();
+
+            var dataPageList = result
                 .Select(p => new
                 {
                     CourseId = p.CourseId,
-                    UpdatedYear = UnixTimeToYear(p.Updated),
-                    UpdatedMonth = UnixTimeToMonth(p.Updated)
+                    UpdatedYear = UnixTimeHandler.UnixTimeToYear(p.Updated),
+                    UpdatedMonth = UnixTimeHandler.UnixTimeToMonth(p.Updated)
                 })
-                .ToListAsync();
-
-            var dataList = convertToYearMonth;
-            
-            if (request.YearRangeStart != null && request.YearRangeEnd != null)
-            {
-                dataList = dataList.Where(p => p.UpdatedYear >= request.YearRangeStart && p.UpdatedYear <= request.YearRangeEnd).ToList();
-            }
-            
-            if (request.MonthRangeStart != null && request.MonthRangeEnd != null)
-            {
-                dataList = dataList.Where(p => p.UpdatedMonth >= request.MonthRangeStart && p.UpdatedMonth <= request.MonthRangeEnd).ToList();
-            }
-            
-            var dataPageList = dataList
                 .GroupBy(p => p.CourseId)
                 .OrderByDescending(p => p.Key)
                 .Skip((request.Page - 1) * request.PageSize)
@@ -511,6 +611,48 @@ public class StatisticsService : IStatisticsService
                 })
                 .ToList();
 
+            var dictList = new Dictionary<int?, Dictionary<int?, int>>();
+            var months = new Dictionary<int?, int>();
+            var startYear = request.YearRangeStart;
+
+            for (var i = 0; i <= (request.YearRangeEnd - request.YearRangeStart); i++)
+            {
+                if (startYear == request.YearRangeStart)
+                {
+                    for (var j = request.MonthRangeStart; j <= 12; j++)
+                    {
+                        months.Add(j, 0);
+                    }
+                }
+                else if(startYear == request.YearRangeEnd)
+                {
+                    for (var j = 1; j <= request.MonthRangeEnd; j++)
+                    {
+                        months.Add(j, 0);
+                    }
+                }
+                else
+                {
+                    for (var j = 1; j <= 12; j++)
+                    {
+                        months.Add(j, 0);
+                    } 
+                }
+                
+
+                dictList.Add(startYear, months);
+                
+                startYear += 1;
+            }
+            
+            var finalList = (from data in dataPageList
+                    join dict in dictList on data.Count.Keys equals dict
+                    select new GetCourseRoundingCountByMonthListItem
+                    {
+                        CourseId = data.CourseId,
+                        Count = 
+                    })
+            
             var response = new GetCourseRoundingCountByMonthResponse
             {
                 RoundingCountList = dataPageList

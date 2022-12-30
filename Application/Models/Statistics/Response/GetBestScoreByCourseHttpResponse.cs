@@ -4,12 +4,7 @@ namespace Application.Models.Statistics;
 public class GetBestScoreByCourseHttpResponse
 {
     public List<GetBestScoreByCourseItem> CourseBestScoreList { get; set; }
-    
-    // public GetBestScoreByCourseHttpResponse(List<GetBestScoreByCourseItem> list)
-    // {
-    //     CourseBestScoreList = list;
-    // } 
-    
+
     public GetBestScoreByCourseHttpResponse(GetBestScoreByCourseResponse response)
     {
         CourseBestScoreList = response.CourseBestScoreList;

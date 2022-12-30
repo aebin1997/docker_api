@@ -1,3 +1,4 @@
+#nullable enable
 using System.ComponentModel.DataAnnotations;
 using Infrastructure.Models.User;
 
@@ -13,7 +14,7 @@ public class GetUserCourseHistoryListHttpRequest
     
     public int? UserId { get; set; }
     
-    public int[] CourseId { get; set; }
+    public int[]? CourseId { get; set; }
 
     public GetUserCourseHistoryListRequest ToGetUserCourseHistoryList()
     {

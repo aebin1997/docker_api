@@ -7,13 +7,7 @@ public class GetLongestListByCourseResponse
 
 public class GetLongestListItem
 {
+    public int RoundId { get; set; }
     public int CourseId { get; set; }
-    public List<GetLongestItem> List { get; set; }
-}
-
-public class GetLongestItem
-{
-    public int Id { get; set; }
-
     public decimal Longest { get; set; }
 }

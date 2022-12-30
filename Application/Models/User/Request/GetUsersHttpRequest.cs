@@ -1,3 +1,4 @@
+#nullable enable
 using System.ComponentModel.DataAnnotations;
 using Infrastructure.Models.User;
 
@@ -13,7 +14,7 @@ public class GetUsersHttpRequest
     
     public int UserId { get; set; }
     
-    public string Club { get; set; }
+    public string? Club { get; set; }
 
     public GetUsersRequest ToGetUsersRequest()
     {
