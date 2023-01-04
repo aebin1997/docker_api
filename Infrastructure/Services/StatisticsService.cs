@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Infrastructure.Context;
 using Infrastructure.Models.Statistics;
 using Microsoft.EntityFrameworkCore;
@@ -579,6 +580,9 @@ public class StatisticsService : IStatisticsService
             
             var result = await query.ToListAsync();
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            
             var dataPageList = result
                 .Select(p => new
                 {
@@ -610,48 +614,77 @@ public class StatisticsService : IStatisticsService
                         .ToDictionary(p => p.Year, p => p.MonthList)
                 })
                 .ToList();
+            
+            var dataPageList2 = result
+                .Select(p => new
+                {
+                    CourseId = p.CourseId,
+                    UpdatedYear = UnixTimeHandler.UnixTimeToYear(p.Updated),
+                    UpdatedMonth = UnixTimeHandler.UnixTimeToMonth(p.Updated)
+                })
+                .GroupBy(p => p.CourseId)
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => new GetCourseRoundingCountByMonthListItem2
+                {
+                    CourseId = p.Key,
+                    Count = p.GroupBy(p => p.UpdatedYear)
+                        .Select(s => new TestList
+                        {
+                            Year = s.Key,
+                            MonthList = s.GroupBy(s => s.UpdatedMonth)
+                                .Select(t => new MonthList
+                                {
+                                    Month = t.Key,
+                                    Count = t.Count()
+                                }).ToList()
+                        }).ToList()
+                })
+                .ToList();
+            
+            stopWatch.Stop();
+            
+            _logger.LogDebug($"dataPageList process time: {stopWatch.ElapsedMilliseconds}ms");
 
-            var dictList = new Dictionary<int?, Dictionary<int?, int>>();
-            var months = new Dictionary<int?, int>();
+            var dictList = new List<Tuple<int?, List<Tuple<int?, int>>>>(); 
             var startYear = request.YearRangeStart;
-
+                
             for (var i = 0; i <= (request.YearRangeEnd - request.YearRangeStart); i++)
             {
+                var months = new List<Tuple<int?, int>>();
+
                 if (startYear == request.YearRangeStart)
                 {
                     for (var j = request.MonthRangeStart; j <= 12; j++)
                     {
-                        months.Add(j, 0);
+                        {
+                            months.Add(new Tuple<int?, int>(j, 0));
+                        }
                     }
                 }
                 else if(startYear == request.YearRangeEnd)
                 {
                     for (var j = 1; j <= request.MonthRangeEnd; j++)
                     {
-                        months.Add(j, 0);
+                        months.Add(new Tuple<int?, int>(j, 0));
                     }
                 }
                 else
                 {
                     for (var j = 1; j <= 12; j++)
                     {
-                        months.Add(j, 0);
+                        months.Add(new Tuple<int?, int>(j, 0));
                     } 
                 }
-                
 
-                dictList.Add(startYear, months);
-                
+                dictList.Add(new Tuple<int?, List<Tuple<int?, int>>>(startYear, months));
+
                 startYear += 1;
             }
+
             
-            var finalList = (from data in dataPageList
-                    join dict in dictList on data.Count.Keys equals dict
-                    select new GetCourseRoundingCountByMonthListItem
-                    {
-                        CourseId = data.CourseId,
-                        Count = 
-                    })
+            // if (request.CourseId != null)
             
             var response = new GetCourseRoundingCountByMonthResponse
             {
