@@ -614,6 +614,55 @@ public class StatisticsService : IStatisticsService
                         .ToDictionary(p => p.Year, p => p.MonthList)
                 })
                 .ToList();
+
+            stopWatch.Stop();
+            
+            _logger.LogDebug($"dataPageList process time: {stopWatch.ElapsedMilliseconds}ms");
+
+            // var dictList = new List<Tuple<int?, List<Tuple<int?, int>>>>();
+            var dictList = new List<TestList>();
+            var startYear = request.YearRangeStart;
+                
+            for (var i = 0; i <= (request.YearRangeEnd - request.YearRangeStart); i++)
+            {
+                var months = new List<MonthList>();
+
+                if (startYear == request.YearRangeStart)
+                {
+                    for (var j = request.MonthRangeStart; j <= 12; j++)
+                    {
+                        {
+                            months.Add(new MonthList(j, 0));
+                        }
+                    }
+                }
+                else if(startYear == request.YearRangeEnd)
+                {
+                    for (var j = 1; j <= request.MonthRangeEnd; j++)
+                    {
+                        months.Add(new MonthList(j, 0));
+                    }
+                }
+                else
+                {
+                    for (var j = 1; j <= 12; j++)
+                    {
+                        months.Add(new MonthList(j, 0));
+                    } 
+                }
+
+                dictList.Add(new TestList(startYear, months));
+
+                startYear += 1;
+            }
+            
+            // var mothList = dictList
+            //     .Select(p => new 
+            //     {
+            //         Count = p.MonthList
+            //         
+            //         
+            //     })
             
             var dataPageList2 = result
                 .Select(p => new
@@ -642,50 +691,7 @@ public class StatisticsService : IStatisticsService
                         }).ToList()
                 })
                 .ToList();
-            
-            stopWatch.Stop();
-            
-            _logger.LogDebug($"dataPageList process time: {stopWatch.ElapsedMilliseconds}ms");
 
-            var dictList = new List<Tuple<int?, List<Tuple<int?, int>>>>(); 
-            var startYear = request.YearRangeStart;
-                
-            for (var i = 0; i <= (request.YearRangeEnd - request.YearRangeStart); i++)
-            {
-                var months = new List<Tuple<int?, int>>();
-
-                if (startYear == request.YearRangeStart)
-                {
-                    for (var j = request.MonthRangeStart; j <= 12; j++)
-                    {
-                        {
-                            months.Add(new Tuple<int?, int>(j, 0));
-                        }
-                    }
-                }
-                else if(startYear == request.YearRangeEnd)
-                {
-                    for (var j = 1; j <= request.MonthRangeEnd; j++)
-                    {
-                        months.Add(new Tuple<int?, int>(j, 0));
-                    }
-                }
-                else
-                {
-                    for (var j = 1; j <= 12; j++)
-                    {
-                        months.Add(new Tuple<int?, int>(j, 0));
-                    } 
-                }
-
-                dictList.Add(new Tuple<int?, List<Tuple<int?, int>>>(startYear, months));
-
-                startYear += 1;
-            }
-
-            
-            // if (request.CourseId != null)
-            
             var response = new GetCourseRoundingCountByMonthResponse
             {
                 RoundingCountList = dataPageList

@@ -23,10 +23,30 @@ public class TestList
 {
     public int Year { get; set; }
     public List<MonthList> MonthList { get; set; }
+
+    public TestList(int?year, List<MonthList> list)
+    {
+        Year = (int)year;
+        MonthList = list;
+    }
+    
+    public TestList()
+    {
+    }
 }
 
 public class MonthList
 {
     public int Month { get; set; }
     public int Count { get; set; }
+    
+    public MonthList(int? month, int count)
+    {
+        Month = (int)month;
+        Count = count;
+    }
+    
+    public MonthList()
+    {
+    }
 }
