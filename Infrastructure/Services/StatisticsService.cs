@@ -375,7 +375,7 @@ public class StatisticsService : IStatisticsService
         }
     }
 
-    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth2(GetCourseRoundingCountByMonthRequest request)
+    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth3(GetCourseRoundingCountByMonthRequest request)
     {
         try
         {
@@ -505,7 +505,7 @@ public class StatisticsService : IStatisticsService
         }
     }
 
-    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth(GetCourseRoundingCountByMonthRequest request)
+    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth2(GetCourseRoundingCountByMonthRequest request)
     {
         try
         {
@@ -656,14 +656,6 @@ public class StatisticsService : IStatisticsService
                 startYear += 1;
             }
             
-            // var mothList = dictList
-            //     .Select(p => new 
-            //     {
-            //         Count = p.MonthList
-            //         
-            //         
-            //     })
-            
             var dataPageList2 = result
                 .Select(p => new
                 {
@@ -698,6 +690,203 @@ public class StatisticsService : IStatisticsService
             };
 
             return (true, 0, response);
+        }
+        catch (Exception ex)
+        {
+            using (LogContext.PushProperty("JsonData", new
+                   {
+                       request = JObject.FromObject(request)
+                   }))
+            {
+                _logger.LogError(ex, "특정 코스의 월별 라운딩 카운트 조회 중 오류 발생");
+            }
+
+            return (false, 3004, null);
+        }
+    }
+
+    public async Task<(bool isSuccess, int errorCode, GetCourseRoundingCountByMonthResponse response)> GetCourseRoundingCountByMonth(GetCourseRoundingCountByMonthRequest request)
+    {
+        try
+        {
+            #region 유효성 검사
+            
+            if (request.Page <= 0) 
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 값이 정수가 아님");
+                }
+                
+                return (false, 30041, null);
+            }
+            
+            if (request.PageSize is not (10 or 20 or 50)) 
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 페이지 사이즈가 범위를 벋어남");
+                }
+                
+                return (false, 30042, null);
+            }
+            
+            if (request.YearRangeStart > request.YearRangeEnd)
+            {
+                using (LogContext.PushProperty("LogProperty", new 
+                       {
+                           request = JObject.FromObject(request)
+                       }))
+                {
+                    _logger.LogInformation("특정 코스의 월별 라운딩 카운트: 년도 범위 오류");
+                }
+                
+                return (false, 30043, null);
+            }
+            
+            #endregion
+
+            var query = _db.UsersByCourse
+                .AsNoTracking();
+
+            if (request.CourseId != null)
+            {
+                query = query.Where(p => request.CourseId.Contains(p.CourseId));
+            }
+            
+            if (request.YearRangeStart != null && request.YearRangeEnd != null && request.MonthRangeStart != null && request.MonthRangeEnd != null)
+            {
+                var searchStartUnixTime = (ulong) new DateTimeOffset(request.YearRangeStart.Value, request.MonthRangeStart.Value, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+
+                var yearRangeEnd = request.YearRangeEnd.Value;
+                var monthRangeEnd = request.MonthRangeEnd.Value;
+
+                if (monthRangeEnd == 12)
+                {
+                    yearRangeEnd += 1;
+                    monthRangeEnd = 1;
+                }
+                else
+                {
+                    monthRangeEnd += 1;
+                }
+
+                var searchEndUnixTime = (ulong) new DateTimeOffset(yearRangeEnd, monthRangeEnd, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeMilliseconds();
+                
+                query = query.Where(p => p.Updated >= searchStartUnixTime && p.Updated < searchEndUnixTime);
+            }
+
+            var courseIdList = await query
+                .GroupBy(p => p.CourseId)
+                .OrderByDescending(p => p.Key)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .Select(p => p.Key)
+                .ToArrayAsync();
+            
+            var dataList2 = await query
+                .Where(p => courseIdList.Contains(p.CourseId))
+                .Select(p => new
+                {
+                    courseId = p.CourseId,
+                    year = UnixTimeHandler.UnixTimeToYear(p.Updated),
+                    month = UnixTimeHandler.UnixTimeToMonth(p.Updated)
+                })
+                .ToListAsync();
+
+            var stopwatch1 = new Stopwatch();
+            stopwatch1.Start();
+            
+            var dataList = await query
+                .Select(p => new
+                {
+                    courseId = p.CourseId,
+                    year = UnixTimeHandler.UnixTimeToYear(p.Updated),
+                    month = UnixTimeHandler.UnixTimeToMonth(p.Updated)
+                })
+                .ToListAsync();
+            
+            stopwatch1.Stop();
+            
+            _logger.LogInformation($"Database Query 처리 시간: {stopwatch1.ElapsedMilliseconds}ms");
+
+            var courseGroupList = dataList
+                .GroupBy(p => p.courseId)
+                .Select(p => new
+                {
+                    courseId = p.Key,
+                    countList = p.GroupBy(s => new { s.year, s.month })
+                        .Select(s => new
+                        {
+                            year = s.Key.year,
+                            month = s.Key.month,
+                            count = s.Count()
+                        })
+                })
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            var response = new GetCourseRoundingCountByMonthNewResponse();
+            response.RoundingCountList = new List<GetCourseRoundingCountByMonthNewListItem>();
+                
+            var stopwatch2 = new Stopwatch();
+            stopwatch2.Start();
+            
+            foreach (var item in courseGroupList)
+            {
+                var courseItem = new GetCourseRoundingCountByMonthNewListItem();
+                courseItem.CourseId = item.courseId;
+                
+                var yearItem1 = new JObject();
+                var yearItem2 = new Dictionary<int, Dictionary<int, int>>();
+                
+                int startYear = request.YearRangeStart ?? 2018;
+                int endYear = request.YearRangeEnd ?? DateTime.UtcNow.Year;
+            
+                for (int year = startYear; year <= endYear; year++)
+                {
+                    var monthItem1 = new JObject();
+                    var monthItem2 = new Dictionary<int, int>();
+                    
+                    int startMonth = year == startYear ? request.MonthRangeStart.Value : 1;
+                    int endMonth = year == endYear ? request.MonthRangeEnd.Value : 12;
+
+                    for (int month = startMonth; month <= endMonth; month++)
+                    {
+                        var count = item.countList.FirstOrDefault(p => p.year == year && p.month == month)?.count;
+                        
+                        monthItem1.Add(month.ToString(), count);
+                        monthItem2.Add(month, count.Value);
+                    }
+                    
+                    yearItem1.Add(year.ToString(), monthItem1);
+                    yearItem2.Add(year, monthItem2);
+                }
+
+                courseItem.Count1 = yearItem1;
+                courseItem.Count2 = yearItem2;
+                
+                response.RoundingCountList.Add(courseItem);
+            }
+            
+            stopwatch2.Stop();
+            
+            _logger.LogInformation($"데이터 가공 처리 시간: {stopwatch2.ElapsedMilliseconds}ms");
+            ;
+            
+            var realResponse = new GetCourseRoundingCountByMonthResponse
+            {
+                // RoundingCountList = dataPageList
+            };
+            
+            return (true, 0, realResponse);
         }
         catch (Exception ex)
         {
