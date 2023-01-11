@@ -1,6 +1,7 @@
 using System.Reflection;
 using Infrastructure.Services;
 using Infrastructure.Context;
+using Infrastructure.Services.DI;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -15,6 +16,14 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ITestService, TestService>();
 builder.Services.AddTransient<ICourseService, CourseService>();
 builder.Services.AddTransient<IStatisticsService, StatisticsService>();
+
+
+builder.Services.AddTransient<IDiService, DiService>();
+builder.Services.AddTransient<IDiTwoService, DiTwoService>();
+
+builder.Services.AddSingleton<ISingletonService, SingletonService>(); // Application이 시작되고 종료될 때까지 1개의 객체를 유지
+builder.Services.AddScoped<IScopedService, ScopedService>(); // 특정 세션(API로 설명하면 Request가 발생아되고 Response될 떄까지)이 종료될 때 까지 1개의 객체를 유지
+builder.Services.AddTransient<ITransientService, TransientService>(); // 선언할 때 마다 객체를 새로 생성
 
 // Mysql Connection
 
